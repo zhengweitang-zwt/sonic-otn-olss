@@ -1,1 +1,1 @@
-# sonic-otn-olss
+# AONOS - Optical Line-card State Service - OLSS
