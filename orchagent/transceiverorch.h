@@ -1,0 +1,26 @@
+#pragma once
+
+#include "laiobjectorch.h"
+
+class TransceiverOrch: public LaiObjectOrch
+{
+public:
+    TransceiverOrch(DBConnector *db, std::vector<TableConnector>& connectors);
+    void setFlexCounter(lai_object_id_t id, vector<lai_attribute_t> &attrs);
+    void clearFlexCounter(lai_object_id_t id, string key);
+    void doSubobjectStateTask(const string &key, const string &present);
+
+private:
+    void doTask(NotificationConsumer& consumer);
+    void doUpgradeTask(NotificationConsumer& consumer);
+    void getUpgradeState(lai_object_id_t oid);
+    swss::NotificationConsumer *m_upgrade_notification_consumer;
+    swss::DBConnector* m_db;
+    std::unique_ptr<swss::Table> m_pchTable;
+    std::unique_ptr<swss::Table> m_lchTable;
+    std::unique_ptr<swss::Table> m_otnTable;
+    std::unique_ptr<swss::Table> m_ethTable;
+    std::unique_ptr<swss::Table> m_ochTable;
+    std::unique_ptr<swss::Table> m_intfTable;
+};
+
