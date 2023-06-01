@@ -121,16 +121,6 @@ LinecardOrch::LinecardOrch(DBConnector *db, std::vector<TableConnector>& connect
             m_readonlyAttrs[meta->attridkebabname] = i;
         }
     }
-
-    // 1-second timer
-    // Currently, we use it to check if linecard is active or not per second.
-    auto interval = timespec { .tv_sec = 1, .tv_nsec = 0 };
-    m_timer_1_sec = new SelectableTimer(interval);
-    auto executor = new ExecutableTimer(m_timer_1_sec, this, "LINECARD_TIMER");
-    Orch::addExecutor(executor);
-    m_timer_1_sec->start();
-
-    m_orch_state = ORCH_STATE_NOT_READY;
 }
 
 void LinecardOrch::initConfigTotalNum(int num)
@@ -313,10 +303,8 @@ void LinecardOrch::createLinecard(
     lai_attribute_t attr;
     vector<lai_attribute_t> attrs;
     lai_status_t status;
-    lai_linecard_type_t linecard_type;
-    bool is_linecard_type_existed = false;
     bool is_board_mode_existed = false;
-    lai_linecard_board_mode_t board_mode = LAI_LINECARD_BOARD_MODE_L1_400G_CA_100GE;
+    string board_mode;
  
     initLaiRedis(record_location, lairedis_rec_filename);
 
@@ -327,23 +315,16 @@ void LinecardOrch::createLinecard(
             SWSS_LOG_ERROR("Failed to translate linecard attr, %s", fv.first.c_str());
             continue;
         }
-        if (attr.id == LAI_LINECARD_ATTR_LINECARD_TYPE)
-        {
-            is_linecard_type_existed = true;
-            linecard_type = (lai_linecard_type_t)(attr.value.s32); 
-        }
-        else if (attr.id == LAI_LINECARD_ATTR_BOARD_MODE)
+        if (attr.id == LAI_LINECARD_ATTR_BOARD_MODE)
         {
             is_board_mode_existed = true;
-            board_mode = (lai_linecard_board_mode_t)(attr.value.s32);
+            board_mode = (attr.value.chardata);
             continue;
         }
         attrs.push_back(attr);
     }
-    if (is_linecard_type_existed)
-    {
-        gFlexCounterOrch->initCounterTable(linecard_type);
-    }
+
+    gFlexCounterOrch->initCounterTable();
 
     attr.id = LAI_LINECARD_ATTR_LINECARD_ALARM_NOTIFY;
     attr.value.ptr = (void*)onLinecardAlarmNotify;
@@ -355,6 +336,14 @@ void LinecardOrch::createLinecard(
 
     attr.id = LAI_LINECARD_ATTR_COLLECT_LINECARD_ALARM;
     attr.value.booldata = true;
+    attrs.push_back(attr);
+
+    attr.id = LAI_LINECARD_ATTR_LINECARD_OCM_SPECTRUM_POWER_NOTIFY;
+    attr.value.ptr = (void*)onOcmSpectrumPowerNotify;
+    attrs.push_back(attr);
+
+    attr.id = LAI_LINECARD_ATTR_LINECARD_OTDR_RESULT_NOTIFY;
+    attr.value.ptr = (void*)onOtdrResultNotify;
     attrs.push_back(attr);
 
     if (gSyncMode)
@@ -397,12 +386,14 @@ void LinecardOrch::createLinecard(
     fields.push_back(tuple);
     m_nameMapTable->set("", fields);
 
+    m_vid2NameTable->set("", fields);
+
     setFlexCounter(gLinecardId);
 
     OrchFSM::setState(ORCH_STATE_WORK);
 }
 
-void LinecardOrch::setBoardMode(lai_linecard_board_mode_t mode)
+void LinecardOrch::setBoardMode(std::string mode)
 {
     SWSS_LOG_ENTER();
 
@@ -411,21 +402,23 @@ void LinecardOrch::setBoardMode(lai_linecard_board_mode_t mode)
     lai_status_t status;
 
     attr.id = LAI_LINECARD_ATTR_BOARD_MODE;
+    memset(attr.value.chardata, 0, sizeof(attr.value.chardata));
     status = lai_linecard_api->get_linecard_attribute(gLinecardId, 1, &attr);
-    if (status == LAI_STATUS_SUCCESS && attr.value.s32 == mode)
+    if (status == LAI_STATUS_SUCCESS && mode == attr.value.chardata)
     {
-        SWSS_LOG_DEBUG("Linecard and maincard have a same board-mode, %d", mode);
+        SWSS_LOG_DEBUG("Linecard and maincard have a same board-mode, %s", mode.c_str());
         return;
     }
 
-    SWSS_LOG_NOTICE("Begin to set board-mode %d", mode);
+    SWSS_LOG_NOTICE("Begin to set board-mode %s", mode.c_str());
 
-    attr.value.s32 = mode;
+    memset(attr.value.chardata, 0, sizeof(attr.value.chardata));
+    strncpy(attr.value.chardata, mode.c_str(), sizeof(attr.value.chardata) - 1);
     status = lai_linecard_api->set_linecard_attribute(gLinecardId, &attr);
     if (status != LAI_STATUS_SUCCESS)
     {
-        SWSS_LOG_ERROR("Failed to set board-mode status=%d, mode=%d",
-                       status, mode);
+        SWSS_LOG_ERROR("Failed to set board-mode status=%d, mode=%s",
+                       status, mode.c_str());
         return;
     }
 
@@ -438,9 +431,8 @@ void LinecardOrch::setBoardMode(lai_linecard_board_mode_t mode)
         {
             continue;
         }
-        auto meta = lai_metadata_get_attr_metadata(LAI_OBJECT_TYPE_LINECARD, attr.id);
-        SWSS_LOG_DEBUG("board-mode = %s", lai_serialize_attr_value(*meta, attr, false, true).c_str());
-        if (attr.value.s32 == mode)
+        SWSS_LOG_DEBUG("board-mode = %s", attr.value.chardata);
+        if (mode == attr.value.chardata)
         {
             break;
         }
@@ -454,107 +446,5 @@ void LinecardOrch::setFlexCounter(lai_object_id_t id)
     gFlexCounterOrch->getGaugeGroup()->setCounterIdList(id, CounterType::LINECARD_GAUGE, linecard_counter_ids_gauge);
     gFlexCounterOrch->getCounterGroup()->setCounterIdList(id, CounterType::LINECARD_COUNTER, linecard_counter_ids_counter);
     gFlexCounterOrch->getStatusGroup()->setCounterIdList(id, CounterType::LINECARD_STATUS, linecard_counter_ids_status);
-}
-
-void LinecardOrch::doTask(SelectableTimer &timer)
-{
-    SWSS_LOG_ENTER();
-
-    if (timer.getFd() == m_timer_1_sec->getFd())
-    {
-        OrchState current_state = OrchFSM::getState();
-        if (m_orch_state != current_state && current_state == ORCH_STATE_PAUSE)
-        {
-            clearLinecardData(); 
-        }
-        m_orch_state = current_state;
-    }
-}
-
-void LinecardOrch::clearLinecardData()
-{
-    SWSS_LOG_ENTER();
-
-    vector<string> counter_tables =
-    {
-        COUNTERS_LINECARD_TABLE_NAME,
-        COUNTERS_PORT_TABLE_NAME,
-        COUNTERS_TRANSCEIVER_TABLE_NAME,
-        COUNTERS_LOGICALCHANNEL_TABLE_NAME,
-        COUNTERS_OTN_TABLE_NAME,
-        COUNTERS_ETHERNET_TABLE_NAME,
-        COUNTERS_PHYSICALCHANNEL_TABLE_NAME,
-        COUNTERS_OCH_TABLE_NAME,
-        COUNTERS_LLDP_TABLE_NAME,
-        COUNTERS_ASSIGNMENT_TABLE_NAME,
-        COUNTERS_INTERFACE_TABLE_NAME,
-        COUNTERS_OA_TABLE_NAME,
-        COUNTERS_OSC_TABLE_NAME,
-        COUNTERS_APS_TABLE_NAME,
-        COUNTERS_APSPORT_TABLE_NAME,
-        COUNTERS_ATTENUATOR_TABLE_NAME,
-    };
-
-    for (auto &table : counter_tables)
-    {
-        string pattern = table + "*";
-        auto keys = m_countersDb->keys(pattern);
-        for (auto k : keys)
-        {
-            SWSS_LOG_NOTICE("clear counter-table %s", k.c_str());
-            m_countersDb->del(k);
-        }
-    }
-
-    vector<string> state_tables =
-    {
-        STATE_PORT_TABLE_NAME,
-        STATE_TRANSCEIVER_TABLE_NAME,
-        STATE_LOGICALCHANNEL_TABLE_NAME,
-        STATE_OTN_TABLE_NAME,
-        STATE_ETHERNET_TABLE_NAME,
-        STATE_PHYSICALCHANNEL_TABLE_NAME,
-        STATE_OCH_TABLE_NAME,
-        STATE_LLDP_TABLE_NAME,
-        STATE_ASSIGNMENT_TABLE_NAME,
-        STATE_INTERFACE_TABLE_NAME,
-        STATE_OA_TABLE_NAME,
-        STATE_OSC_TABLE_NAME,
-        STATE_APS_TABLE_NAME,
-        STATE_APSPORT_TABLE_NAME,
-        STATE_ATTENUATOR_TABLE_NAME,
-    };
-
-    for (auto &table : state_tables)
-    {
-        string pattern = table + "*";
-        auto keys = m_stateDb->keys(pattern);
-        for (auto k : keys)
-        {
-            SWSS_LOG_NOTICE("clear state-table %s", k.c_str());
-            m_stateDb->del(k);
-        }
-    }
-
-    string linecard_key = "LINECARD|LINECARD-1-" + to_string(gSlotId);
-    auto hash = m_stateDb->hgetall(linecard_key);
-    for (auto &kv: hash)
-    {
-        const string &field = kv.first;
-        if (field == "oper-status" ||
-            field == "power-admin-state" ||
-            field == "slot-status" ||
-            field == "empty" ||
-            field == "part-no" ||
-            field == "serial-no" ||
-            field == "hardware-version" ||
-            field == "mfg-date" ||
-            field == "removable")
-        {
-            continue;
-        }
-        SWSS_LOG_NOTICE("clear state-table %s %s", linecard_key.c_str(), field.c_str());
-        m_stateDb->hdel(linecard_key, field);
-    } 
 }
 

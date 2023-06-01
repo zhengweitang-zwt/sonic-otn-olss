@@ -51,6 +51,9 @@ void LaiObjectOrch::localDataInit(DBConnector* db,
     m_objectName = lai_metadata_get_object_type_name(obj_type);
     m_stateDb = shared_ptr<DBConnector>(new DBConnector("STATE_DB", 0));
     m_countersDb = shared_ptr<DBConnector>(new DBConnector("COUNTERS_DB", 0));
+    m_vid2NameTable = unique_ptr<Table>(new Table(m_countersDb.get(), "VID2NAME"));
+
+    m_count = 0;
 
     for (auto i : cfg_attrs)
     {
@@ -60,10 +63,12 @@ void LaiObjectOrch::localDataInit(DBConnector* db,
             SWSS_LOG_ERROR("invalid attr, object=%s, attr=%d", m_objectName.c_str(), i);
             continue;
         }
+ 
         if (meta->ismandatoryoncreate == true)
         {
             m_mandatoryAttrs[meta->attridkebabname] = i;
         }
+
         if (meta->iscreateonly == true)
         {
             m_createonlyAttrs[meta->attridkebabname] = i;
@@ -72,11 +77,7 @@ void LaiObjectOrch::localDataInit(DBConnector* db,
         {
             m_createandsetAttrs[meta->attridkebabname] = i;
         }
-        else
-        {
-            SWSS_LOG_ERROR("attr cannot be set, object=%s, attr=%d", m_objectName.c_str(), i);
-            continue;
-        }
+
         if (meta->isrecoverable == false)
         {
             m_irrecoverableAttrs[meta->attridkebabname] = i;
@@ -104,15 +105,6 @@ LaiObjectOrch::LaiObjectOrch(DBConnector* db,
     SWSS_LOG_ENTER();
 
     localDataInit(db, obj_type, cfg_attrs);
-
-    // 5-seconds timer
-    // Currently, when pluggable lai-object is not present,
-    // we use this timer to clear its data in counter and state db.
-    auto interval = timespec { .tv_sec = 5, .tv_nsec = 0 };
-    m_timer_5_sec = new SelectableTimer(interval);
-    auto executor = new ExecutableTimer(m_timer_5_sec, this, "LAIOBJECT_TIMER");
-    Orch::addExecutor(executor);
-    m_timer_5_sec->start();
 }
 
 LaiObjectOrch::LaiObjectOrch(DBConnector *db,
@@ -158,7 +150,6 @@ void LaiObjectOrch::doTask(NotificationConsumer& consumer)
 
     if (OrchFSM::getState() != ORCH_STATE_WORK)
     {
-        SWSS_LOG_ERROR("Orch isn't in working status");
         goto error;
     }
 
@@ -194,7 +185,7 @@ void LaiObjectOrch::doTask(NotificationConsumer& consumer)
                 goto error;
             }
         }
-        data = "SUCCESS";
+        op = "SUCCESS";
         m_notificationProducer->send(op, data, values);
 
         return; 
@@ -214,14 +205,14 @@ void LaiObjectOrch::doTask(NotificationConsumer& consumer)
                 goto error;
             }
          }
-         data = "SUCCESS";
+         op = "SUCCESS";
          m_notificationProducer->send(op, data, values);
 
          return;
     }
 
 error:
-    data = "FAILED";
+    op = "FAILED";
     m_notificationProducer->send(op, data, values);
 
     return;
@@ -248,16 +239,7 @@ bool LaiObjectOrch::createLaiObject(const string &key)
         attrs.push_back(attr); 
     }
 
-    if (m_objectType == LAI_OBJECT_TYPE_APS)
-    {
-        attr.id = LAI_APS_ATTR_SWITCH_INFO_NOTIFY;
-        attr.value.ptr = (void*)onApsSwitchInfoNotify;
-        attrs.push_back(attr);
-
-        attr.id = LAI_APS_ATTR_COLLECT_SWITCH_INFO;
-        attr.value.booldata = true;
-        attrs.push_back(attr);
-    }
+    addExtraAttrsOnCreate(attrs);
 
     status = m_createFunc(&oid, gLinecardId, static_cast<uint32_t>(attrs.size()), attrs.data());
     if (status != LAI_STATUS_SUCCESS)
@@ -278,30 +260,17 @@ bool LaiObjectOrch::createLaiObject(const string &key)
     {
         SWSS_LOG_ERROR("Failed to get object info, %s", key.c_str());
     }
+
     FieldValueTuple tuple(lai_serialize_object_id(oid), key);
     vector<FieldValueTuple> fields;
     fields.push_back(tuple);
     m_nameMapTable->set("", fields);
 
+    m_vid2NameTable->set("", fields);
+
     setFlexCounter(oid, attrs);
 
     SWSS_LOG_NOTICE("Initialized %s", key.c_str());
-
-    return true;
-}
-
-bool LaiObjectOrch::removeLaiObject(const lai_object_id_t oid)
-{
-    SWSS_LOG_ENTER();
-
-    lai_status_t status = m_removeFunc(oid);
-    if (status != LAI_STATUS_SUCCESS)
-    {
-        SWSS_LOG_ERROR("Failed to remove %s|%" PRIx64 ", rv=%d", m_objectName.c_str(), oid, status);
-        return false;
-    }
-
-    SWSS_LOG_NOTICE("Remove %s %" PRIx64, m_objectName.c_str(), oid);
 
     return true;
 }
@@ -549,12 +518,14 @@ void LaiObjectOrch::doTask(Consumer &consumer)
 
         if (key == "ConfigDone")
         {
-            if (m_config_state != CONFIG_MISSING)
+            if (m_configState != CONFIG_MISSING)
             {
                 it = consumer.m_toSync.erase(it);
                 continue;
             }
-            m_config_state = CONFIG_RECEIVED;
+
+            m_configState = CONFIG_RECEIVED;
+
             for (auto i : kfvFieldsValues(t))
             {
                 if (fvField(i) == "count")
@@ -568,16 +539,18 @@ void LaiObjectOrch::doTask(Consumer &consumer)
         {
             int index = -1;
             string operation_id = "";
+
             map<string, string> createonly_attrs;
             map<string, string> createandset_attrs;
-            vector<FieldValueTuple> auxiliary_fv; 
+            vector<FieldValueTuple> auxiliary_fv;
+ 
             for (auto i : kfvFieldsValues(t))
             {
                 if (fvField(i) == "index")
                 {
                     index = (int)stoul(fvValue(i));
                 }
-                if (fvField(i) == "operation-id")
+                else if (fvField(i) == "operation-id")
                 {
                     operation_id = fvValue(i);
                 }
@@ -589,7 +562,8 @@ void LaiObjectOrch::doTask(Consumer &consumer)
                 {
                     createandset_attrs[fvField(i)] = fvValue(i);
                 }
-                else if (m_auxiliaryFields.find(fvField(i)) != m_auxiliaryFields.end())
+
+                if (m_auxiliaryFields.find(fvField(i)) != m_auxiliaryFields.end())
                 {
                     auxiliary_fv.push_back(i);
                 }
@@ -602,97 +576,72 @@ void LaiObjectOrch::doTask(Consumer &consumer)
                 m_key2createonlyAttrs[key] = createonly_attrs;
                 m_key2auxiliaryFvs[key] = auxiliary_fv;
             }
-            if (m_config_state == CONFIG_RECEIVED || m_config_state == CONFIG_DONE)
+
+            it = consumer.m_toSync.erase(it);
+
+            if (m_configState == CONFIG_MISSING)
             {
-                for (auto it = m_key2oid.begin(); it != m_key2oid.end();)
+                continue;
+            }
+
+            for (auto k = m_keys.begin(); k != m_keys.end(); k++)
+            {
+                if (m_key2oid.find(*k) != m_key2oid.end())
                 {
-                    if (m_keys.find(it->first) == m_keys.end())
-                    {
-                        if (removeLaiObject(it->second) != LAI_STATUS_SUCCESS)
-                        {
-                            SWSS_LOG_ERROR("Failed to remove object");
-                        }
-                        it = m_key2oid.erase(it);
-                    }
-                    else
-                    {
-                        it++;
-                    }
+                    continue;
                 }
 
-                for (auto it = m_keys.begin(); it != m_keys.end(); it++)
+                if (!createLaiObject(*k))
                 {
-                    if (m_key2oid.find(*it) == m_key2oid.end())
-                    {
-                        if (!createLaiObject(*it))
-                        {
-                            SWSS_LOG_THROW("Failed to create object");
-                        }
-                    }
+                    SWSS_LOG_THROW("Failed to create object");
                 }
-                if (m_key2oid.size() == m_count)
-                {
-                    m_count = 0;
-                    SWSS_LOG_NOTICE("Finish initialize %s", m_objectName.c_str()); 
-                    gLinecardOrch->incConfigNum();
-                }
-                m_config_state = CONFIG_DONE;
             }
-            if (m_config_state != CONFIG_DONE)
+
+            if (m_count != 0 && m_key2oid.size() == m_count)
             {
-                it++;
+                SWSS_LOG_NOTICE("Finish initialize %s", m_objectName.c_str());
+
+                gLinecardOrch->incConfigNum();
+
+                m_count = 0;
+
+                m_configState = CONFIG_CREATED;
+            }
+
+            if (m_configState != CONFIG_DONE)
+            {
+                if (m_configState == CONFIG_CREATED)
+                {
+                    m_configState = CONFIG_DONE;
+                }
                 continue;
             }
+
             if (key == "ConfigDone")
             {
-                it = consumer.m_toSync.erase(it);
                 continue;
             }
-            if (setLaiObjectAttrs(key, createandset_attrs, operation_id) == false)
+
+            if (!setLaiObjectAttrs(key, createandset_attrs, operation_id))
             {
-                it = consumer.m_toSync.erase(it);  
-                continue;
+                SWSS_LOG_ERROR("Failed to set attributes, %s", key.c_str());
+            }
+
+            if (!auxiliary_fv.empty())
+            {
+                setSelfProcessAttrs(key, auxiliary_fv, operation_id);
             }
         }
         else if (op == DEL_COMMAND)
         {
             SWSS_LOG_NOTICE("Deleting %s", key.c_str());
+            it = consumer.m_toSync.erase(it);
         }
         else
         {
             SWSS_LOG_ERROR("Unknown operation type %s", op.c_str());
+            it = consumer.m_toSync.erase(it);
         }
-        it = consumer.m_toSync.erase(it);
-    }
-}
-
-void LaiObjectOrch::clearCountersTable(string key)
-{
-    SWSS_LOG_ENTER();
-
-    string pattern = m_countersTable + ":" + key + "*";
-
-    SWSS_LOG_NOTICE("clear counter-table pattern=%s", pattern.c_str());
-    auto keys = m_countersDb->keys(pattern);
-    for (auto k : keys)
-    {
-        SWSS_LOG_NOTICE("DEL key=%s", k.c_str());
-        m_countersDb->del(k);
-    }
-}
-
-void LaiObjectOrch::clearStateTable(string key)
-{
-    SWSS_LOG_ENTER();
-
-    string pattern = m_stateTable->getTableName() + "|" + key + "*";
-
-    SWSS_LOG_NOTICE("clear state-table pattern=%s", pattern.c_str());
-    auto keys = m_stateDb->keys(pattern);
-    for (auto k : keys)
-    {
-        SWSS_LOG_NOTICE("DEL key=%s", k.c_str());
-        m_stateDb->del(k);
     }
 }
 
@@ -756,7 +705,6 @@ void LaiObjectOrch::doStateTask(Consumer &consumer)
             {
                 SWSS_LOG_NOTICE("clearCounterIdList 0x%lx, key = %s", id, key.c_str());
                 clearFlexCounter(id, key);
-                m_preClearKeys.insert(key);
             }
 
             doSubobjectStateTask(key, present_value);
@@ -767,24 +715,25 @@ void LaiObjectOrch::doStateTask(Consumer &consumer)
     }
 }
 
-void LaiObjectOrch::doTask(SelectableTimer &timer)
+void LaiObjectOrch::setSelfProcessAttrs(
+        const string &key,
+        vector<FieldValueTuple> &auxiliary_fv,
+        string operation_id)
 {
     SWSS_LOG_ENTER();
 
-    if (timer.getFd() == m_timer_5_sec->getFd())
+    for (auto fv: auxiliary_fv)
     {
-        for (auto &key : m_readyToClearKeys)
+        if (fvField(fv) != "name")
         {
-            clearCountersTable(key);
-            clearStateTable(key);
+            continue;
         }
-        m_readyToClearKeys.clear();
 
-        for (auto &key : m_preClearKeys)
-        {
-            m_readyToClearKeys.insert(key);
-        }
-        m_preClearKeys.clear();
+        m_stateTable->hset(key, fvField(fv), fvValue(fv));
+
+        string channel = fvField(fv) + "-" + operation_id;
+        string error_msg = "Set " + key + " " + fvField(fv) + " to " + fvValue(fv);
+        publishOperationResult(channel, 0, error_msg);
     }
 }
 

@@ -2,12 +2,14 @@ extern "C" {
 #include "lai.h"
 }
 #include <vector>
+#include <inttypes.h>
 
 #include "dbconnector.h"
 #include "logger.h"
 #include "notifications.h"
 #include "orchfsm.h"
 #include "notificationproducer.h"
+#include "lai_serialize.h"
 
 using namespace std;
 using namespace swss;
@@ -41,8 +43,9 @@ void onLinecardActive()
 #endif
 }
 
-void onLinecardStateChange(_In_ lai_object_id_t linecard_id,
-    _In_ lai_oper_status_t linecard_oper_status)
+void onLinecardStateChange(
+        _In_ lai_object_id_t linecard_id,
+        _In_ lai_oper_status_t linecard_oper_status)
 {
     SWSS_LOG_ENTER();
 
@@ -60,4 +63,40 @@ void onLinecardStateChange(_In_ lai_object_id_t linecard_id,
     }
 }
 
+void onOcmSpectrumPowerNotify(
+        _In_ lai_object_id_t linecard_id,
+        _In_ lai_object_id_t ocm_id,
+        _In_ lai_spectrum_power_t ocm_result)
+{
+    SWSS_LOG_ENTER();
+
+    DBConnector appl_db("APPL_DB", 0);
+    DBConnector counters_db("COUNTERS_DB", 0);
+
+    NotificationProducer notify(&appl_db, OCM_REPLY);
+
+    std::string strVid = lai_serialize_object_id(ocm_id);
+
+    auto key = counters_db.hget(COUNTERS_OCM_NAME_MAP, strVid);
+    if (key == nullptr)
+    {
+        return;
+    }
+
+    SWSS_LOG_DEBUG("orch receive ocm notification, %s", key->c_str());
+
+    std::string op("SUCCESS");
+    std::string data(*key);
+    std::vector<swss::FieldValueTuple> values;
+
+    notify.send(op, data, values);
+}
+
+void onOtdrResultNotify(
+        _In_ lai_object_id_t linecard_id,
+        _In_ lai_object_id_t otdr_id,
+        _In_ lai_otdr_result_t otdr_result)
+{
+    SWSS_LOG_ENTER();
+}
 

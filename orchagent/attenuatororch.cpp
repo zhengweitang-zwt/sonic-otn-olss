@@ -28,7 +28,6 @@ extern std::unordered_set<std::string> attenuator_counter_ids_gauge;
 vector<lai_attr_id_t> g_attenuator_cfg_attrs =
 {
     LAI_ATTENUATOR_ATTR_ID,
-    LAI_ATTENUATOR_ATTR_NAME,
     LAI_ATTENUATOR_ATTR_ATTENUATION_MODE,
     LAI_ATTENUATOR_ATTR_TARGET_OUTPUT_POWER,
     LAI_ATTENUATOR_ATTR_ATTENUATION,
@@ -37,6 +36,7 @@ vector<lai_attr_id_t> g_attenuator_cfg_attrs =
 
 vector<string> g_attenuator_auxiliary_fields =
 {
+    "name",
     "component",
 };
 

@@ -104,6 +104,11 @@ bool cmd_set(int argc, char **argv)
         query_channel = LINECARD_NOTIFICATION;
         reply_channel = LINECARD_REPLY;
     }
+    else if (table == "OTDR")
+    {
+        query_channel = OTDR_NOTIFICATION;
+        reply_channel = OTDR_REPLY;
+    }
     else
     {
         SWSS_LOG_NOTICE("Invalid table %s", table.c_str());
@@ -122,9 +127,18 @@ bool cmd_set(int argc, char **argv)
 
     char *field = strtok(argv[3], "=");
     char *value = strtok(NULL, "=");
+
+    if (value == NULL || field == NULL)
+    {
+        printUsage();
+        exit(EXIT_FAILURE);
+    }
+
     values.emplace_back(field, value);
 
     query.send(op, key, values);
+
+    SWSS_LOG_NOTICE("set %s, %s=%s", key.c_str(), field, value);
     
     std::string op_ret, data;
     std::vector<swss::FieldValueTuple> values_ret;
@@ -132,7 +146,7 @@ bool cmd_set(int argc, char **argv)
     int result = s.select(&sel, wait_time);
     if (result == swss::Select::OBJECT) {
         reply.pop(op_ret, data, values_ret);
-        if (data == "SUCCESS") {
+        if (op_ret == "SUCCESS") {
             return true;
         } else {
             SWSS_LOG_NOTICE("command exec failed, op_ret %s status %s", op_ret.c_str(), data.c_str());
@@ -194,7 +208,7 @@ bool cmd_get(int argc, char **argv)
     int result = s.select(&sel, wait_time);
     if (result == swss::Select::OBJECT) {
         reply.pop(op_ret, data, values_ret);
-        if (data == "SUCCESS") {
+        if (op_ret == "SUCCESS") {
             for (auto v: values_ret) {
                 if (std::get<0>(v) != field) {
                     continue;
@@ -206,10 +220,10 @@ bool cmd_get(int argc, char **argv)
             SWSS_LOG_NOTICE("command exec failed, op_ret %s status %s", op_ret.c_str(), data.c_str());
         }
     } else if (result == swss::Select::TIMEOUT) {
-        SWSS_LOG_NOTICE("command exec failed for %s timed out", op_ret.c_str());
+        SWSS_LOG_NOTICE("command exec failed (timed out)");
     } else {
-        SWSS_LOG_NOTICE("command exec failed for %s error", op_ret.c_str());
-    }       
+        SWSS_LOG_NOTICE("command exec failed");
+    }
     values_ret.clear();
 
     std::cout << "command exec failed" << std::endl;
@@ -238,7 +252,7 @@ bool cmd_state(int argc, char **argv)
     int result = s.select(&sel, wait_time);
     if (result == swss::Select::OBJECT) {
         reply.pop(op_ret, data, values_ret);
-        if (data == "SUCCESS") {
+        if (op_ret == "SUCCESS") {
             for (auto v: values_ret) {
                 std::cout << "state: " << std::get<1>(v) << std::endl;
             }
@@ -282,5 +296,7 @@ int main(int argc, char **argv)
     }
 
     std::cout << "command exec failed" << std::endl;
+
     return EXIT_FAILURE;
 }
+

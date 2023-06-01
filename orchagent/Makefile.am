@@ -31,6 +31,8 @@ orchagent_SOURCES = \
             apsorch.cpp \
             apsportorch.cpp \
             attenuatororch.cpp \
+            ocmorch.cpp \
+            otdrorch.cpp \
             laiobjectorch.cpp \
             laihelper.cpp \
             request_parser.cpp \

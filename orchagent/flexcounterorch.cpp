@@ -95,6 +95,10 @@ std::unordered_set<std::string> apsport_counter_ids_gauge;
 std::unordered_set<std::string> attenuator_counter_ids_status;
 std::unordered_set<std::string> attenuator_counter_ids_gauge;
 
+std::unordered_set<std::string> ocm_counter_ids_status;
+
+std::unordered_set<std::string> otdr_counter_ids_status;
+
 std::unordered_map<std::string, std::unordered_set<std::string>&> g_flexCounterIds =
 {
     {"LINECARD_COUNTER_ID_LIST_STATUS",     linecard_counter_ids_status},
@@ -132,22 +136,27 @@ std::unordered_map<std::string, std::unordered_set<std::string>&> g_flexCounterI
 
     {"ASSIGNMENT_COUNTER_ID_LIST_STATUS",   assignment_counter_ids_status},
 
-    {"INTERFACE_COUNTER_ID_LIST_STATUS",   interface_counter_ids_status},
+    {"INTERFACE_COUNTER_ID_LIST_STATUS",    interface_counter_ids_status},
     {"INTERFACE_COUNTER_ID_LIST_COUNTER",   interface_counter_ids_counter},
 
-    {"OA_COUNTER_ID_LIST_STATUS",   oa_counter_ids_status},
-    {"OA_COUNTER_ID_LIST_GAUGE",   oa_counter_ids_gauge},
+    {"OA_COUNTER_ID_LIST_STATUS",           oa_counter_ids_status},
+    {"OA_COUNTER_ID_LIST_GAUGE",            oa_counter_ids_gauge},
 
-    {"OSC_COUNTER_ID_LIST_STATUS",   osc_counter_ids_status},
-    {"OSC_COUNTER_ID_LIST_GAUGE",   osc_counter_ids_gauge},
+    {"OSC_COUNTER_ID_LIST_STATUS",          osc_counter_ids_status},
+    {"OSC_COUNTER_ID_LIST_GAUGE",           osc_counter_ids_gauge},
 
-    {"APS_COUNTER_ID_LIST_STATUS",   aps_counter_ids_status},
+    {"APS_COUNTER_ID_LIST_STATUS",          aps_counter_ids_status},
 
-    {"APSPORT_COUNTER_ID_LIST_STATUS",   apsport_counter_ids_status},
-    {"APSPORT_COUNTER_ID_LIST_GAUGE",   apsport_counter_ids_gauge},
+    {"APSPORT_COUNTER_ID_LIST_STATUS",      apsport_counter_ids_status},
+    {"APSPORT_COUNTER_ID_LIST_GAUGE",       apsport_counter_ids_gauge},
 
     {"ATTENUATOR_COUNTER_ID_LIST_STATUS",   attenuator_counter_ids_status},
-    {"ATTENUATOR_COUNTER_ID_LIST_GAUGE",   attenuator_counter_ids_gauge},
+    {"ATTENUATOR_COUNTER_ID_LIST_GAUGE",    attenuator_counter_ids_gauge},
+
+    {"OCM_COUNTER_ID_LIST_STATUS",          ocm_counter_ids_status},
+
+    {"OTDR_COUNTER_ID_LIST_STATUS",         otdr_counter_ids_status},
+
 };
 
 shared_ptr<vector<KeyOpFieldsValuesTuple>> load_json(string file)
@@ -264,7 +273,7 @@ void FlexCounterOrch::doCounterGroupTask(Consumer& consumer)
     m_flexCounterGroupInit = true;
 }
 
-void FlexCounterOrch::initCounterTable(lai_linecard_type_t linecard_type)
+void FlexCounterOrch::initCounterTable()
 {
     SWSS_LOG_ENTER();
 

@@ -85,8 +85,8 @@ void DiagOrch::doTask(NotificationConsumer& consumer)
             swss::FieldValueTuple fv("state", current_state);
             std::vector<swss::FieldValueTuple> fvs;
             fvs.push_back(fv);
-            std::string rv("SUCCESS");
-            reply.send(op, rv, fvs);
+            op = "SUCCESS";
+            reply.send(op, data, fvs);
         }
     }
 }

@@ -87,6 +87,9 @@ const unordered_map<CounterType, string> FlexCounterManager::counter_id_field_lo
 
     { CounterType::ATTENUATOR_STATUS, ATTENUATOR_STATUS_ID_LIST },
     { CounterType::ATTENUATOR_GAUGE, ATTENUATOR_GAUGE_ID_LIST },
+
+    { CounterType::OCM_STATUS, OCM_STATUS_ID_LIST },
+    { CounterType::OTDR_STATUS, OTDR_STATUS_ID_LIST },
 };
 
 FlexCounterManager::FlexCounterManager(

@@ -28,10 +28,7 @@ extern std::unordered_set<std::string> oa_counter_ids_gauge;
 vector<lai_attr_id_t> g_oa_cfg_attrs =
 {
     LAI_OA_ATTR_ID,
-    LAI_OA_ATTR_NAME,
     LAI_OA_ATTR_TARGET_GAIN,
-    LAI_OA_ATTR_MIN_GAIN,
-    LAI_OA_ATTR_MAX_GAIN,
     LAI_OA_ATTR_TARGET_GAIN_TILT,
     LAI_OA_ATTR_AMP_MODE,
     LAI_OA_ATTR_TARGET_OUTPUT_POWER,
@@ -48,10 +45,15 @@ vector<lai_attr_id_t> g_oa_cfg_attrs =
     LAI_OA_ATTR_INPUT_LOW_THRESHOLD,
     LAI_OA_ATTR_OUTPUT_LOW_THRESHOLD,
     LAI_OA_ATTR_LOS_ASE_DELAY,
+    LAI_OA_ATTR_APR_NODE_ENABLE,
+    LAI_OA_ATTR_APR_NODE_REFLECTION_THRESHOLD,
+    LAI_OA_ATTR_APR_LINE_ENABLE,
+    LAI_OA_ATTR_APR_LINE_VALID_LLDP,
 };
 
 vector<string> g_oa_auxiliary_fields =
 {
+    "name",
     "location",
     "component",
     "parent",

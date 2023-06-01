@@ -19,11 +19,31 @@
 #include <iostream>
 #include <string>
 #include "configsync.h"
+#include "ocm_configsync.h"
+#include "otdr_configsync.h"
 #include <thread>
 #include <chrono>
 
 using namespace std;
 using namespace swss;
+
+ConfigSync *g_apsportSync;
+ConfigSync *g_apsSync;
+ConfigSync *g_assignmentSync;
+ConfigSync *g_attenuatorSync;
+ConfigSync *g_ethernetSync;
+ConfigSync *g_interfaceSync;
+ConfigSync *g_lldpSync;
+ConfigSync *g_logicalchannelSync;
+ConfigSync *g_oaSync;
+ConfigSync *g_ochSync;
+ConfigSync *g_oscSync;
+ConfigSync *g_otnSync;
+ConfigSync *g_physicalchannelSync;
+ConfigSync *g_portSync;
+ConfigSync *g_transceiverSync;
+ConfigSync *g_ocmSync;
+ConfigSync *g_otdrSync;
 
 void usage()
 {
@@ -38,7 +58,7 @@ int main(int argc, char **argv)
 
     int opt;
 
-    while ((opt = getopt(argc, argv, "v:h")) != -1 )
+    while ((opt = getopt(argc, argv, "v:h")) != -1)
     {
         switch (opt)
         {
@@ -51,53 +71,63 @@ int main(int argc, char **argv)
         }
     }
 
-    ConfigSync *apsport_sync = new ConfigSync("apsportsync", CFG_APSPORT_TABLE_NAME, APP_APSPORT_TABLE_NAME);
-    ConfigSync *aps_sync = new ConfigSync("apssync", CFG_APS_TABLE_NAME, APP_APS_TABLE_NAME);
-    ConfigSync *assignment_sync = new ConfigSync("assignmentsync", CFG_ASSIGNMENT_TABLE_NAME, APP_ASSIGNMENT_TABLE_NAME);
-    ConfigSync *attenuator_sync = new ConfigSync("attenuatorsync", CFG_ATTENUATOR_TABLE_NAME, APP_ATTENUATOR_TABLE_NAME);
-    ConfigSync *ethernet_sync = new ConfigSync("ethernetsync", CFG_ETHERNET_TABLE_NAME, APP_ETHERNET_TABLE_NAME);
-    ConfigSync *interface_sync = new ConfigSync("interfacesync", CFG_INTERFACE_TABLE_NAME, APP_INTERFACE_TABLE_NAME);
-    ConfigSync *lldp_sync = new ConfigSync("lldpsync", CFG_LLDP_TABLE_NAME, APP_LLDP_TABLE_NAME);
-    ConfigSync *logicalchannel_sync = new ConfigSync("logicalchannelsync", CFG_LOGICALCHANNEL_TABLE_NAME, APP_LOGICALCHANNEL_TABLE_NAME);
-    ConfigSync *oa_sync = new ConfigSync("oasync", CFG_OA_TABLE_NAME, APP_OA_TABLE_NAME);
-    ConfigSync *och_sync = new ConfigSync("ochsync", CFG_OCH_TABLE_NAME, APP_OCH_TABLE_NAME);
-    ConfigSync *osc_sync = new ConfigSync("oscsync", CFG_OSC_TABLE_NAME, APP_OSC_TABLE_NAME);
-    ConfigSync *otn_sync = new ConfigSync("otnsync", CFG_OTN_TABLE_NAME, APP_OTN_TABLE_NAME);
-    ConfigSync *physicalchannel_sync = new ConfigSync("physicalchannelsync", CFG_PHYSICALCHANNEL_TABLE_NAME, APP_PHYSICALCHANNEL_TABLE_NAME);
-    ConfigSync *port_sync = new ConfigSync("portsync", CFG_PORT_TABLE_NAME, APP_PORT_TABLE_NAME);
-    ConfigSync *transceiver_sync = new ConfigSync("transceiversync", CFG_TRANSCEIVER_TABLE_NAME, APP_TRANSCEIVER_TABLE_NAME);
+    g_apsportSync = new ConfigSync("apsportsync", CFG_APSPORT_TABLE_NAME, APP_APSPORT_TABLE_NAME);
+    g_apsSync = new ConfigSync("apssync", CFG_APS_TABLE_NAME, APP_APS_TABLE_NAME);
+    g_assignmentSync = new ConfigSync("assignmentsync", CFG_ASSIGNMENT_TABLE_NAME, APP_ASSIGNMENT_TABLE_NAME);
+    g_attenuatorSync = new ConfigSync("attenuatorsync", CFG_ATTENUATOR_TABLE_NAME, APP_ATTENUATOR_TABLE_NAME);
+    g_ethernetSync = new ConfigSync("ethernetsync", CFG_ETHERNET_TABLE_NAME, APP_ETHERNET_TABLE_NAME);
+    g_interfaceSync = new ConfigSync("interfacesync", CFG_INTERFACE_TABLE_NAME, APP_INTERFACE_TABLE_NAME);
+    g_lldpSync = new ConfigSync("lldpsync", CFG_LLDP_TABLE_NAME, APP_LLDP_TABLE_NAME);
+    g_logicalchannelSync = new ConfigSync("logicalchannelsync", CFG_LOGICALCHANNEL_TABLE_NAME, APP_LOGICALCHANNEL_TABLE_NAME);
+    g_oaSync = new ConfigSync("oasync", CFG_OA_TABLE_NAME, APP_OA_TABLE_NAME);
+    g_ochSync = new ConfigSync("ochsync", CFG_OCH_TABLE_NAME, APP_OCH_TABLE_NAME);
+    g_oscSync = new ConfigSync("oscsync", CFG_OSC_TABLE_NAME, APP_OSC_TABLE_NAME);
+    g_otnSync = new ConfigSync("otnsync", CFG_OTN_TABLE_NAME, APP_OTN_TABLE_NAME);
+    g_physicalchannelSync = new ConfigSync("physicalchannelsync", CFG_PHYSICALCHANNEL_TABLE_NAME, APP_PHYSICALCHANNEL_TABLE_NAME);
+    g_portSync = new ConfigSync("portsync", CFG_PORT_TABLE_NAME, APP_PORT_TABLE_NAME);
+    g_transceiverSync = new ConfigSync("transceiversync", CFG_TRANSCEIVER_TABLE_NAME, APP_TRANSCEIVER_TABLE_NAME);
+    g_ocmSync = new OcmConfigSync();
+    g_otdrSync = new OtdrConfigSync();
 
-    vector<ConfigSync *>sync_list  {
-        apsport_sync,
-        aps_sync,
-        assignment_sync,
-        attenuator_sync,
-        ethernet_sync,
-        interface_sync,
-        lldp_sync,
-        logicalchannel_sync,
-        oa_sync,
-        och_sync,
-        osc_sync,
-        otn_sync,
-        physicalchannel_sync,
-        port_sync,
-        transceiver_sync
+    vector<ConfigSync *> syncList
+    {
+        g_apsportSync,
+        g_apsSync,
+        g_assignmentSync,
+        g_attenuatorSync,
+        g_ethernetSync,
+        g_interfaceSync,
+        g_lldpSync,
+        g_logicalchannelSync,
+        g_oaSync,
+        g_ochSync,
+        g_oscSync,
+        g_otnSync,
+        g_physicalchannelSync,
+        g_portSync,
+        g_transceiverSync,
+        g_ocmSync,
+        g_otdrSync
     };
 
-    try {
+    try
+    {
+
         Select s;
 
         vector<ConfigSync *> objects;
 
-        for (ConfigSync * sync : sync_list) {
-            if (sync->handleConfigFromConfigDB()) {
+        for (ConfigSync *sync : syncList)
+        {
+            if (sync->handleConfigFromConfigDB())
+            {
                 objects.push_back(sync);
-                s.addSelectable(sync->getSelectable());
+                s.addSelectables(sync->getSelectables());
             }
         }
 
-        if (objects.size() == 0) {
+        if (objects.size() == 0)
+        {
             goto exit;
         }
 
@@ -115,38 +145,53 @@ int main(int argc, char **argv)
             SWSS_LOG_NOTICE("Waiting for Linecard...");
             this_thread::sleep_for(chrono::milliseconds(1000));
         }
+
         for (const auto& value : linecard_key)
         {
             SWSS_LOG_NOTICE("Set object-count, key=%s, count=%d", value.c_str(), static_cast<int>(objects.size()));
             linecard_pst.set(value, attrs);
         }
  
-        while (true) {
+        while (true)
+        {
             Selectable *temps;
-            int ret;
-            ret = s.select(&temps, DEFAULT_SELECT_TIMEOUT);
 
-            if (ret == Select::ERROR) {
+            int ret = s.select(&temps, DEFAULT_SELECT_TIMEOUT);
+
+            if (ret == Select::ERROR)
+            {
                 cerr << "Error had been returned in select" << endl;
                 continue;
-            } else if (ret == Select::TIMEOUT) {
+            }
+            else if (ret == Select::TIMEOUT)
+            {
                 continue;
-            } else if (ret != Select::OBJECT) {
+            }
+            else if (ret != Select::OBJECT)
+            {
                 SWSS_LOG_ERROR("Unknown return value from Select %d", ret);
                 continue;
             }
-            for (ConfigSync *o : objects) {
+
+            for (ConfigSync *o : objects)
+            {
                 o->doTask(temps);
             }
         }
-    } catch (const std::exception& e) {
+    }
+    catch (const std::exception& e)
+    {
         cerr << "Exception \"" << e.what() << "\" was thrown in daemon" << endl;
-    } catch (...) {   
+    }
+    catch (...)
+    {   
         cerr << "Exception was thrown in daemon" << endl;
     }
 
 exit:
-    for (ConfigSync * sync : sync_list) {
+
+    for (ConfigSync *sync : syncList)
+    {
         delete sync;
     }
 

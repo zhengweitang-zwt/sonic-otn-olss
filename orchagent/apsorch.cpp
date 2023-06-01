@@ -17,6 +17,7 @@
 
 #include "apsorch.h"
 #include "flexcounterorch.h"
+#include "notifications.h"
 
 using namespace std;
 using namespace swss;
@@ -28,7 +29,6 @@ vector<lai_attr_id_t> g_aps_cfg_attrs =
 {
     LAI_APS_ATTR_ID,
     LAI_APS_ATTR_TYPE,
-    LAI_APS_ATTR_NAME,
     LAI_APS_ATTR_REVERTIVE,
     LAI_APS_ATTR_WAIT_TO_RESTORE_TIME,
     LAI_APS_ATTR_HOLD_OFF_TIME,
@@ -45,6 +45,7 @@ vector<lai_attr_id_t> g_aps_cfg_attrs =
 
 vector<string> g_aps_auxiliary_fields =
 {
+    "name",
     "location",
     "parent",
     "subcomponents",
@@ -66,6 +67,21 @@ ApsOrch::ApsOrch(DBConnector *db, const vector<string> &table_names)
     m_removeFunc = lai_aps_api->remove_aps;
     m_setFunc = lai_aps_api->set_aps_attribute;
     m_getFunc = lai_aps_api->get_aps_attribute;
+}
+
+void ApsOrch::addExtraAttrsOnCreate(vector<lai_attribute_t> &attrs)
+{
+    SWSS_LOG_ENTER();
+
+    lai_attribute_t attr;
+
+    attr.id = LAI_APS_ATTR_SWITCH_INFO_NOTIFY;
+    attr.value.ptr = (void*)onApsSwitchInfoNotify;
+    attrs.push_back(attr);
+
+    attr.id = LAI_APS_ATTR_COLLECT_SWITCH_INFO;
+    attr.value.booldata = true;
+    attrs.push_back(attr);
 }
 
 void ApsOrch::setFlexCounter(lai_object_id_t id, vector<lai_attribute_t> &attrs)

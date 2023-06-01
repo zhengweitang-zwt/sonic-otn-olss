@@ -73,6 +73,9 @@ enum class CounterType
 
     ATTENUATOR_STATUS,
     ATTENUATOR_GAUGE,
+
+    OCM_STATUS,
+    OTDR_STATUS,
 };
 
 // FlexCounterManager allows users to manage a group of flex counters.

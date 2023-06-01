@@ -1,0 +1,187 @@
+/**
+ * Copyright (c) 2023 Alibaba Group Holding Limited
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License"); you may
+ *    not use this file except in compliance with the License. You may obtain
+ *    a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR
+ *    CONDITIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT
+ *    LIMITATION ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS
+ *    FOR A PARTICULAR PURPOSE, MERCHANTABILITY OR NON-INFRINGEMENT.
+ *
+ *    See the Apache Version 2.0 License for specific language governing
+ *    permissions and limitations under the License.
+ *
+ */
+
+#include "ocmorch.h"
+#include "flexcounterorch.h"
+#include "orchfsm.h"
+#include "notifications.h"
+
+using namespace std;
+using namespace swss;
+
+extern FlexCounterOrch *gFlexCounterOrch;
+extern std::unordered_set<std::string> ocm_counter_ids_status;
+
+vector<lai_attr_id_t> g_ocm_cfg_attrs =
+{
+    LAI_OCM_ATTR_ID,
+    LAI_OCM_ATTR_SCAN,
+    LAI_OCM_ATTR_FREQUENCY_GRANULARITY,
+};
+
+vector<string> g_ocm_auxiliary_fields =
+{
+    "name",
+    "monitor-port",
+    "parent",
+    "component"
+};
+
+OcmOrch::OcmOrch(DBConnector *db, const vector<string> &table_names)
+    : LaiObjectOrch(db, table_names, LAI_OBJECT_TYPE_OCM, g_ocm_cfg_attrs, g_ocm_auxiliary_fields)
+{
+    SWSS_LOG_ENTER();
+
+    m_stateTable = unique_ptr<Table>(new Table(m_stateDb.get(), STATE_OCM_TABLE_NAME));
+    m_countersTable = COUNTERS_OCM_TABLE_NAME;
+    m_nameMapTable = unique_ptr<Table>(new Table(m_countersDb.get(), COUNTERS_OCM_NAME_MAP));
+
+    m_notificationConsumer = new NotificationConsumer(db, OCM_NOTIFICATION);
+    auto notifier = new Notifier(m_notificationConsumer, this, OCM_NOTIFICATION);
+    Orch::addExecutor(notifier);
+    m_notificationProducer = new NotificationProducer(db, OCM_REPLY);
+
+    m_createFunc = lai_ocm_api->create_ocm;
+    m_removeFunc = lai_ocm_api->remove_ocm;
+    m_setFunc = lai_ocm_api->set_ocm_attribute;
+    m_getFunc = lai_ocm_api->get_ocm_attribute;
+}
+
+void OcmOrch::setFlexCounter(lai_object_id_t id, vector<lai_attribute_t> &attrs)
+{
+    SWSS_LOG_ENTER();
+
+    gFlexCounterOrch->getStatusGroup()->setCounterIdList(id, CounterType::OCM_STATUS, ocm_counter_ids_status);
+}
+
+void OcmOrch::doTask(swss::NotificationConsumer &consumer)
+{
+    SWSS_LOG_ENTER();
+
+    if (&consumer != m_notificationConsumer)
+    {
+        return;
+    }
+
+    std::string data;
+    std::string op;
+    std::vector<swss::FieldValueTuple> values;
+
+    consumer.pop(op, data, values);
+
+    std::string op_ret;
+
+    if (OrchFSM::getState() != ORCH_STATE_WORK)
+    {
+        op_ret = "UNAVAILABLE";
+        m_notificationProducer->send(op_ret, data, values);
+
+        return;
+    }
+
+    if (m_key2oid.find(data) == m_key2oid.end())
+    {
+        op_ret = "FAILED";
+        m_notificationProducer->send(op_ret, data, values);
+
+        return;
+    }
+
+    bool success = false;
+
+    if (op == "set")
+    {
+        lai_object_id_t oid = m_key2oid[data];
+
+        for (unsigned i = 0; i < values.size(); i++)
+        {
+            std::string &value = fvValue(values[i]);
+            std::string &field = fvField(values[i]);
+
+            if (m_irrecoverableAttrs.find(field) == m_irrecoverableAttrs.end())
+            {
+                success = false;
+                break;
+            }
+
+            if (m_createandsetAttrs.find(field) == m_createandsetAttrs.end())
+            {
+                success = false;
+                break;
+            }
+
+            lai_attribute_t attr;
+            attr.id = m_createandsetAttrs[field];
+
+            if (translateLaiObjectAttr(field, value, attr) == false)
+            {
+                success = false;
+                break;
+            }
+
+            try
+            {
+                lai_status_t status = m_setFunc(oid, &attr);
+
+                if (status == LAI_STATUS_SUCCESS)
+                {
+                    success = true;
+                }
+                else
+                {
+                    success = false;
+                    break;
+                }
+            }
+            catch(const std::runtime_error& error)
+            {
+                SWSS_LOG_WARN("OCM set %s failed", field.c_str());
+                success = false;
+                break;
+            }
+        }
+    }
+
+    if (success == false)
+    {
+        op_ret = "FAILED";
+        m_notificationProducer->send(op_ret, data, values);
+    }
+
+    return;
+}
+
+void OcmOrch::setSelfProcessAttrs(const string &key,
+                                  vector<FieldValueTuple> &auxiliary_fv,
+                                  string operation_id)
+{
+    for (auto fv: auxiliary_fv)
+    {
+        if (fvField(fv) != "name" &&
+            fvField(fv) != "monitor-port")
+        {
+            continue;
+        }
+
+        m_stateTable->hset(key, fvField(fv), fvValue(fv));
+
+        string channel = fvField(fv) + "-" + operation_id;
+        string error_msg = "Set " + key + " " + fvField(fv) + " to " + fvValue(fv);
+        publishOperationResult(channel, 0, error_msg);
+    }
+}
+

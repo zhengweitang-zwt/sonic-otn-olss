@@ -25,22 +25,18 @@ public:
     void initConfigTotalNum(int num);
     void incConfigNum();
     void stopPreConfigProc();
-    void doTask(SelectableTimer &timer);
-    void clearLinecardData();
 
 private:
     void doTask(Consumer& consumer);
     void doAppLinecardTableTask(Consumer& consumer);
     void doLinecardStateTask(Consumer& consumer);
     void setFlexCounter(lai_object_id_t id);
-    void setBoardMode(lai_linecard_board_mode_t mode);
+    void setBoardMode(std::string mode);
 
     swss::DBConnector* m_db;
     WarmRestartCheck m_warmRestartCheck = { false, false, false };
     int m_config_total_num;
     bool m_config_total_num_inited;
     int m_config_num;
-
-    OrchState m_orch_state;
 };
 

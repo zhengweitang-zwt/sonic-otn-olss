@@ -28,7 +28,6 @@ extern std::unordered_set<std::string> osc_counter_ids_gauge;
 vector<lai_attr_id_t> g_osc_cfg_attrs =
 {
     LAI_OSC_ATTR_ID,
-    LAI_OSC_ATTR_NAME,
     LAI_OSC_ATTR_ENABLED,
     LAI_OSC_ATTR_RX_LOW_THRESHOLD,
     LAI_OSC_ATTR_RX_HIGH_THRESHOLD,
@@ -37,6 +36,7 @@ vector<lai_attr_id_t> g_osc_cfg_attrs =
 
 vector<string> g_osc_auxiliary_fields =
 {
+    "name",
     "location",
     "interface",
     "parent",

@@ -23,6 +23,8 @@
 #include "attenuatororch.h"
 #include "transceiverorch.h"
 #include "portorch.h"
+#include "ocmorch.h"
+#include "otdrorch.h"
 #include "linecardorch.h"
 #include "flexcounterorch.h"
 #include "diagorch.h"

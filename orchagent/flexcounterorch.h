@@ -21,7 +21,7 @@ public:
     FlexCounterOrch(swss::DBConnector *db, std::vector<std::string> &tableNames);
     virtual ~FlexCounterOrch(void);
 //    void doCounterTableTask(Consumer &consumer);
-    void initCounterTable(lai_linecard_type_t linecard_type);
+    void initCounterTable();
     void doCounterGroupTask(Consumer &consumer);
     FlexCounterManager *getCounterGroup(){return &m_counterManager;};
     FlexCounterManager *getGaugeGroup(){return &m_gaugeManager;};

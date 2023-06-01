@@ -49,6 +49,8 @@ lai_osc_api_t*                   lai_osc_api;
 lai_aps_api_t*                   lai_aps_api;
 lai_apsport_api_t*               lai_apsport_api;
 lai_attenuator_api_t*            lai_attenuator_api;
+lai_ocm_api_t*                   lai_ocm_api;
+lai_otdr_api_t*                  lai_otdr_api;
 
 extern lai_object_id_t gLinecardId;
 extern bool gLairedisRecord;
@@ -135,6 +137,8 @@ void initLaiApi()
     lai_api_query(LAI_API_APS,                    (void **)&lai_aps_api);
     lai_api_query(LAI_API_APSPORT,                (void **)&lai_apsport_api);
     lai_api_query(LAI_API_ATTENUATOR,             (void **)&lai_attenuator_api);
+    lai_api_query(LAI_API_OCM,                    (void **)&lai_ocm_api);
+    lai_api_query(LAI_API_OTDR,                   (void **)&lai_otdr_api);
 
     lai_log_set(LAI_API_LINECARD,                 LAI_LOG_LEVEL_WARN);
     lai_log_set(LAI_API_PORT,                     LAI_LOG_LEVEL_WARN);
@@ -152,6 +156,8 @@ void initLaiApi()
     lai_log_set(LAI_API_APS,                      LAI_LOG_LEVEL_WARN);
     lai_log_set(LAI_API_APSPORT,                  LAI_LOG_LEVEL_WARN);
     lai_log_set(LAI_API_ATTENUATOR,               LAI_LOG_LEVEL_WARN);
+    lai_log_set(LAI_API_OCM,                      LAI_LOG_LEVEL_WARN);
+    lai_log_set(LAI_API_OTDR,                     LAI_LOG_LEVEL_WARN);
 }
 
 void initLaiRedis(const string &record_location, const std::string &record_filename)

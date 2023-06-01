@@ -33,6 +33,8 @@ OscOrch *gOscOrch;
 ApsOrch *gApsOrch;
 ApsportOrch *gApsportOrch;
 AttenuatorOrch *gAttenuatorOrch;
+OcmOrch *gOcmOrch;
+OtdrOrch *gOtdrOrch;
 LinecardOrch* gLinecardOrch;
 Directory<Orch*> gDirectory;
 FlexCounterOrch* gFlexCounterOrch;
@@ -169,6 +171,16 @@ bool OrchDaemon::init()
     };
     gAttenuatorOrch = new AttenuatorOrch(m_applDb, attenuator_tables);
 
+    const vector<string> ocm_tables = {
+        APP_OCM_TABLE_NAME,
+    };
+    gOcmOrch = new OcmOrch(m_applDb, ocm_tables);
+
+    const vector<string> otdr_tables = {
+        APP_OTDR_TABLE_NAME,
+    };
+    gOtdrOrch = new OtdrOrch(m_applDb, otdr_tables);
+
     const vector<string> lldp_tables = {
         APP_LLDP_TABLE_NAME,
     };
@@ -203,6 +215,8 @@ bool OrchDaemon::init()
                    gApsOrch,
                    gApsportOrch,
                    gAttenuatorOrch,
+                   gOcmOrch,
+                   gOtdrOrch,
                    gDiagOrch };
 
     m_select = new Select();

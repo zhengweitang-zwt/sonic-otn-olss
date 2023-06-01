@@ -104,7 +104,6 @@ void LineCardMgr::doTask(Consumer& consumer)
         else if (op == DEL_COMMAND)
         {
             SWSS_LOG_NOTICE("Delete LineCard: %s", alias.c_str());
-            m_stateLineCardTable.del(alias);
         }
 
         it = consumer.m_toSync.erase(it);
