@@ -39,9 +39,9 @@ OtdrScanningMgr::OtdrScanningMgr(string otdrName,
         m_otdrName(otdrName),
         m_applDb("APPL_DB", 0),
         m_stateDb("STATE_DB", 0),
-        m_stateTable(&m_stateDb, STATE_OTDR_TABLE_NAME),
-        m_queryChannel(&m_applDb, OTDR_NOTIFICATION),
-        m_replyChannel(&m_applDb, OTDR_REPLY),
+        m_stateTable(&m_stateDb, STATE_OT_OTDR_TABLE_NAME),
+        m_queryChannel(&m_applDb, OT_OTDR_NOTIFICATION),
+        m_replyChannel(&m_applDb, OT_OTDR_REPLY),
         m_startTime(startTime)
 {
     SWSS_LOG_ENTER();
@@ -283,7 +283,7 @@ void OtdrScanningMgr::updatePeriodicScanningParameter(
 }
  
 OtdrConfigSync::OtdrConfigSync():
-        ConfigSync("otdrsync", CFG_OTDR_TABLE_NAME, APP_OTDR_TABLE_NAME)
+        ConfigSync("otdrsync", CFG_OT_OTDR_TABLE_NAME, APP_OT_OTDR_TABLE_NAME)
 {
     SWSS_LOG_ENTER();
 }

@@ -1,6 +1,6 @@
 INCLUDES = -I $(top_srcdir)/lib -I $(top_srcdir) -I $(top_srcdir)/warmrestart -I flex_counter
 
-CFLAGS_LAI = -I /usr/include/lai
+CFLAGS_OTAI = -I /usr/include/otai
 
 swssdir = $(datadir)/swss
 
@@ -33,8 +33,8 @@ orchagent_SOURCES = \
             attenuatororch.cpp \
             ocmorch.cpp \
             otdrorch.cpp \
-            laiobjectorch.cpp \
-            laihelper.cpp \
+            otaiobjectorch.cpp \
+            otaihelper.cpp \
             request_parser.cpp \
             flexcounterorch.cpp \
             linecardorch.cpp \
@@ -43,7 +43,7 @@ orchagent_SOURCES = \
             diagorch.cpp
 
 orchagent_SOURCES += flex_counter/flex_counter_manager.cpp flex_counter/flex_counter_stat_manager.cpp
-orchagent_CFLAGS = $(DBGFLAGS) $(AM_CFLAGS) $(CFLAGS_COMMON) $(CFLAGS_LAI)
-orchagent_CPPFLAGS = $(DBGFLAGS) $(AM_CFLAGS) $(CFLAGS_COMMON) $(CFLAGS_LAI)
-orchagent_LDADD = -lnl-3 -lnl-route-3 -lpthread -llairedis -lswsscommon -llaimeta -llaimetadata
+orchagent_CFLAGS = $(DBGFLAGS) $(AM_CFLAGS) $(CFLAGS_COMMON) $(CFLAGS_OTAI)
+orchagent_CPPFLAGS = $(DBGFLAGS) $(AM_CFLAGS) $(CFLAGS_COMMON) $(CFLAGS_OTAI)
+orchagent_LDADD = -lnl-3 -lnl-route-3 -lpthread -lotairedis -lswsscommon -lotaimeta -lotaimetadata
 

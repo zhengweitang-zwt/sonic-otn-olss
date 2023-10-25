@@ -26,19 +26,19 @@ using namespace swss;
 extern FlexCounterOrch *gFlexCounterOrch;
 extern std::unordered_set<std::string> otdr_counter_ids_status;
 
-vector<lai_attr_id_t> g_otdr_cfg_attrs =
+vector<otai_attr_id_t> g_otdr_cfg_attrs =
 {
-    LAI_OTDR_ATTR_ID,
-    LAI_OTDR_ATTR_REFRACTIVE_INDEX,
-    LAI_OTDR_ATTR_BACKSCATTER_INDEX,
-    LAI_OTDR_ATTR_REFLECTION_THRESHOLD,
-    LAI_OTDR_ATTR_SPLICE_LOSS_THRESHOLD,
-    LAI_OTDR_ATTR_END_OF_FIBER_THRESHOLD,
-    LAI_OTDR_ATTR_DISTANCE_RANGE,
-    LAI_OTDR_ATTR_PULSE_WIDTH,
-    LAI_OTDR_ATTR_AVERAGE_TIME,
-    LAI_OTDR_ATTR_OUTPUT_FREQUENCY,
-    LAI_OTDR_ATTR_SCAN,
+    OTAI_OTDR_ATTR_ID,
+    OTAI_OTDR_ATTR_REFRACTIVE_INDEX,
+    OTAI_OTDR_ATTR_BACKSCATTER_INDEX,
+    OTAI_OTDR_ATTR_REFLECTION_THRESHOLD,
+    OTAI_OTDR_ATTR_SPLICE_LOSS_THRESHOLD,
+    OTAI_OTDR_ATTR_END_OF_FIBER_THRESHOLD,
+    OTAI_OTDR_ATTR_DISTANCE_RANGE,
+    OTAI_OTDR_ATTR_PULSE_WIDTH,
+    OTAI_OTDR_ATTR_AVERAGE_TIME,
+    OTAI_OTDR_ATTR_OUTPUT_FREQUENCY,
+    OTAI_OTDR_ATTR_SCAN,
 };
 
 vector<string> g_otdr_auxiliary_fields =
@@ -52,26 +52,26 @@ vector<string> g_otdr_auxiliary_fields =
 };
 
 OtdrOrch::OtdrOrch(DBConnector *db, const vector<string> &table_names)
-    : LaiObjectOrch(db, table_names, LAI_OBJECT_TYPE_OTDR, g_otdr_cfg_attrs, g_otdr_auxiliary_fields)
+    : LaiObjectOrch(db, table_names, OTAI_OBJECT_TYPE_OTDR, g_otdr_cfg_attrs, g_otdr_auxiliary_fields)
 {
     SWSS_LOG_ENTER();
  
-    m_stateTable = unique_ptr<Table>(new Table(m_stateDb.get(), STATE_OTDR_TABLE_NAME));
-    m_countersTable = COUNTERS_OTDR_TABLE_NAME;
-    m_nameMapTable = unique_ptr<Table>(new Table(m_countersDb.get(), COUNTERS_OTDR_NAME_MAP));
+    m_stateTable = unique_ptr<Table>(new Table(m_stateDb.get(), STATE_OT_OTDR_TABLE_NAME));
+    m_countersTable = COUNTERS_OT_OTDR_TABLE_NAME;
+    m_nameMapTable = unique_ptr<Table>(new Table(m_countersDb.get(), COUNTERS_OT_OTDR_NAME_MAP));
  
-    m_notificationConsumer = new NotificationConsumer(db, OTDR_NOTIFICATION);
-    auto notifier = new Notifier(m_notificationConsumer, this, OTDR_NOTIFICATION);
+    m_notificationConsumer = new NotificationConsumer(db, OT_OTDR_NOTIFICATION);
+    auto notifier = new Notifier(m_notificationConsumer, this, OT_OTDR_NOTIFICATION);
     Orch::addExecutor(notifier);
-    m_notificationProducer = new NotificationProducer(db, OTDR_REPLY);
+    m_notificationProducer = new NotificationProducer(db, OT_OTDR_REPLY);
  
-    m_createFunc = lai_otdr_api->create_otdr;
-    m_removeFunc = lai_otdr_api->remove_otdr;
-    m_setFunc = lai_otdr_api->set_otdr_attribute;
-    m_getFunc = lai_otdr_api->get_otdr_attribute;
+    m_createFunc = otai_otdr_api->create_otdr;
+    m_removeFunc = otai_otdr_api->remove_otdr;
+    m_setFunc = otai_otdr_api->set_otdr_attribute;
+    m_getFunc = otai_otdr_api->get_otdr_attribute;
 }
 
-void OtdrOrch::setFlexCounter(lai_object_id_t id, vector<lai_attribute_t> &attrs)
+void OtdrOrch::setFlexCounter(otai_object_id_t id, vector<otai_attribute_t> &attrs)
 {
     SWSS_LOG_ENTER();
  
@@ -113,9 +113,9 @@ void OtdrOrch::doTask(swss::NotificationConsumer &consumer)
  
     bool success = false;
  
-    lai_object_id_t oid = m_key2oid[data];
+    otai_object_id_t oid = m_key2oid[data];
 
-    lai_status_t status;
+    otai_status_t status;
  
     if (op == "set")
     {
@@ -136,7 +136,7 @@ void OtdrOrch::doTask(swss::NotificationConsumer &consumer)
                 break;
             }
  
-            lai_attribute_t attr;
+            otai_attribute_t attr;
             attr.id = m_createandsetAttrs[field];
  
             if (translateLaiObjectAttr(field, value, attr) == false)
@@ -149,7 +149,7 @@ void OtdrOrch::doTask(swss::NotificationConsumer &consumer)
             { 
                 status = m_setFunc(oid, &attr);
 
-                if (status == LAI_STATUS_SUCCESS)
+                if (status == OTAI_STATUS_SUCCESS)
                 {
                     success = true;
                     op_ret = "SUCCESS";

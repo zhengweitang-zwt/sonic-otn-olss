@@ -1,12 +1,12 @@
 #pragma once
 
-#include "laiobjectorch.h"
+#include "otaiobjectorch.h"
 
 class ApsOrch: public LaiObjectOrch
 {
 public:
     ApsOrch(DBConnector *db, const vector<string> &table_names);
-    void setFlexCounter(lai_object_id_t id, vector<lai_attribute_t> &attrs);
-    void addExtraAttrsOnCreate(vector<lai_attribute_t> &attrs);
+    void setFlexCounter(otai_object_id_t id, vector<otai_attribute_t> &attrs);
+    void addExtraAttrsOnCreate(vector<otai_attribute_t> &attrs);
 };
 

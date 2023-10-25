@@ -59,7 +59,7 @@ int main(int argc, char **argv)
     try
     {
         vector<string> cfg_cardmgr_tables = {
-            CFG_LINECARD_TABLE_NAME,
+            CFG_OT_LINECARD_TABLE_NAME,
         };
 
         DBConnector cfgDb("CONFIG_DB", 0);

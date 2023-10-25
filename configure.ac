@@ -17,10 +17,10 @@ AC_CHECK_LIB([nl-genl-3], [genl_connect])
 
 PKG_CHECK_MODULES([JANSSON], [jansson])
 
-AC_CHECK_LIB([lai], [lai_object_type_query],
-    AM_CONDITIONAL(HAVE_LAI, true),
-   [AC_MSG_WARN([liblai is not installed.])
-    AM_CONDITIONAL(HAVE_LAI, false)])
+AC_CHECK_LIB([otai], [otai_object_type_query],
+    AM_CONDITIONAL(HAVE_OTAI, true),
+   [AC_MSG_WARN([libotai is not installed.])
+    AM_CONDITIONAL(HAVE_OTAI, false)])
 
 AC_ARG_ENABLE(debug,
 [  --enable-debug      Compile with debugging flags],
@@ -34,7 +34,7 @@ AM_CONDITIONAL(DEBUG, test x$debug = xtrue)
 AC_ARG_WITH(extra-inc,
 [  --with-extra-inc=DIR
                           prefix where extra includes are installed],
-[AC_SUBST(CPPFLAGS, "$CPPFLAGS -I${withval} -I${withval}/swss -I${withval}/lai")])
+[AC_SUBST(CPPFLAGS, "$CPPFLAGS -I${withval} -I${withval}/swss -I${withval}/otai")])
 
 AC_ARG_WITH(extra-lib,
 [  --with-extra-lib=DIR
@@ -85,7 +85,6 @@ AC_CONFIG_FILES([
     Makefile
     orchagent/Makefile
     configsyncd/Makefile
-    swssconfig/Makefile
     cfgmgr/Makefile
     appl/Makefile
 ])

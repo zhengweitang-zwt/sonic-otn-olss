@@ -3,7 +3,7 @@
 #include "orch.h"
 #include "timer.h"
 #include "dbconnector.h"
-#include "laiobjectorch.h"
+#include "otaiobjectorch.h"
 #include "orchfsm.h"
 
 struct WarmRestartCheck
@@ -30,7 +30,7 @@ private:
     void doTask(Consumer& consumer);
     void doAppLinecardTableTask(Consumer& consumer);
     void doLinecardStateTask(Consumer& consumer);
-    void setFlexCounter(lai_object_id_t id);
+    void setFlexCounter(otai_object_id_t id);
     void setBoardMode(std::string mode);
 
     swss::DBConnector* m_db;

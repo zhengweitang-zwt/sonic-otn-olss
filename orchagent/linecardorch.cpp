@@ -21,16 +21,16 @@
 #include <string>
 #include <thread>
 #include <chrono>
-#include <lairedis.h>
+#include <otairedis.h>
 #include "linecardorch.h"
 #include "flexcounterorch.h"
-#include "lai_serialize.h"
+#include "otai_serialize.h"
 #include "notifier.h"
 #include "notificationproducer.h"
 #include "notifications.h"
 #include "orchfsm.h"
 #include "subscriberstatetable.h"
-#include "laihelper.h"
+#include "otaihelper.h"
 #include "timestamp.h"
 #include "converter.h"
 
@@ -42,53 +42,53 @@ extern std::unordered_set<std::string> linecard_counter_ids_status;
 extern std::unordered_set<std::string> linecard_counter_ids_gauge;
 extern std::unordered_set<std::string> linecard_counter_ids_counter;
 extern int gSlotId;
-extern string lairedis_rec_filename;
+extern string otairedis_rec_filename;
 extern bool gSyncMode;
-extern lai_redis_communication_mode_t gRedisCommunicationMode;
+extern otai_redis_communication_mode_t gRedisCommunicationMode;
 extern FlexCounterOrch* gFlexCounterOrch;
 
-vector<lai_attr_id_t> g_linecard_cfg_attrs =
+vector<otai_attr_id_t> g_linecard_cfg_attrs =
 {
-    LAI_LINECARD_ATTR_LINECARD_TYPE,
-    LAI_LINECARD_ATTR_BOARD_MODE,
-    LAI_LINECARD_ATTR_RESET,
-    LAI_LINECARD_ATTR_HOSTNAME,
-    LAI_LINECARD_ATTR_BAUD_RATE,
-    LAI_LINECARD_ATTR_COLLECT_LINECARD_LOG,
-    LAI_LINECARD_ATTR_HOST_IP,
-    LAI_LINECARD_ATTR_USER_NAME,
-    LAI_LINECARD_ATTR_USER_PASSWORD,
-    LAI_LINECARD_ATTR_UPGRADE_FILE_NAME,
-    LAI_LINECARD_ATTR_UPGRADE_FILE_PATH,
-    LAI_LINECARD_ATTR_UPGRADE_DOWNLOAD,
-    LAI_LINECARD_ATTR_UPGRADE_AUTO,
-    LAI_LINECARD_ATTR_UPGRADE_COMMIT,
-    LAI_LINECARD_ATTR_UPGRADE_COMMIT_PAUSE,
-    LAI_LINECARD_ATTR_UPGRADE_COMMIT_RESUME,
-    LAI_LINECARD_ATTR_UPGRADE_ROLLBACK,
-    LAI_LINECARD_ATTR_UPGRADE_REBOOT,
-    LAI_LINECARD_ATTR_LED_MODE,
-    LAI_LINECARD_ATTR_LED_FLASH_INTERVAL,
+    OTAI_LINECARD_ATTR_LINECARD_TYPE,
+    OTAI_LINECARD_ATTR_BOARD_MODE,
+    OTAI_LINECARD_ATTR_RESET,
+    OTAI_LINECARD_ATTR_HOSTNAME,
+    OTAI_LINECARD_ATTR_BAUD_RATE,
+    OTAI_LINECARD_ATTR_COLLECT_LINECARD_LOG,
+    OTAI_LINECARD_ATTR_HOST_IP,
+    OTAI_LINECARD_ATTR_USER_NAME,
+    OTAI_LINECARD_ATTR_USER_PASSWORD,
+    OTAI_LINECARD_ATTR_UPGRADE_FILE_NAME,
+    OTAI_LINECARD_ATTR_UPGRADE_FILE_PATH,
+    OTAI_LINECARD_ATTR_UPGRADE_DOWNLOAD,
+    OTAI_LINECARD_ATTR_UPGRADE_AUTO,
+    OTAI_LINECARD_ATTR_UPGRADE_COMMIT,
+    OTAI_LINECARD_ATTR_UPGRADE_COMMIT_PAUSE,
+    OTAI_LINECARD_ATTR_UPGRADE_COMMIT_RESUME,
+    OTAI_LINECARD_ATTR_UPGRADE_ROLLBACK,
+    OTAI_LINECARD_ATTR_UPGRADE_REBOOT,
+    OTAI_LINECARD_ATTR_LED_MODE,
+    OTAI_LINECARD_ATTR_LED_FLASH_INTERVAL,
 };
 
-vector<lai_attr_id_t> g_linecard_state_attrs = 
+vector<otai_attr_id_t> g_linecard_state_attrs = 
 {
-    LAI_LINECARD_ATTR_UPGRADE_STATE,
+    OTAI_LINECARD_ATTR_UPGRADE_STATE,
 };
 
 LinecardOrch::LinecardOrch(DBConnector *db, std::vector<TableConnector>& connectors)
-    : LaiObjectOrch(db, connectors, LAI_OBJECT_TYPE_LINECARD, g_linecard_cfg_attrs)
+    : LaiObjectOrch(db, connectors, OTAI_OBJECT_TYPE_LINECARD, g_linecard_cfg_attrs)
 {
     SWSS_LOG_ENTER();
 
-    m_stateTable = unique_ptr<Table>(new Table(m_stateDb.get(), STATE_LINECARD_TABLE_NAME));
-    m_countersTable = COUNTERS_LINECARD_TABLE_NAME;
-    m_nameMapTable = unique_ptr<Table>(new Table(m_countersDb.get(), COUNTERS_LINECARD_NAME_MAP));
+    m_stateTable = unique_ptr<Table>(new Table(m_stateDb.get(), STATE_OT_LINECARD_TABLE_NAME));
+    m_countersTable = COUNTERS_OT_LINECARD_TABLE_NAME;
+    m_nameMapTable = unique_ptr<Table>(new Table(m_countersDb.get(), COUNTERS_OT_LINECARD_NAME_MAP));
 
-    m_notificationConsumer = new NotificationConsumer(db, LINECARD_NOTIFICATION);
-    auto notifier = new Notifier(m_notificationConsumer, this, LINECARD_NOTIFICATION);
+    m_notificationConsumer = new NotificationConsumer(db, OT_LINECARD_NOTIFICATION);
+    auto notifier = new Notifier(m_notificationConsumer, this, OT_LINECARD_NOTIFICATION);
     Orch::addExecutor(notifier);
-    m_notificationProducer = new NotificationProducer(db, LINECARD_REPLY);
+    m_notificationProducer = new NotificationProducer(db, OT_LINECARD_REPLY);
 
     std::string oper_status;
     std::string linecard_key = "LINECARD-1-" + std::to_string(gSlotId);
@@ -105,12 +105,12 @@ LinecardOrch::LinecardOrch(DBConnector *db, std::vector<TableConnector>& connect
     m_config_total_num_inited = false;
     m_config_num = 0;
 
-    m_setFunc = lai_linecard_api->set_linecard_attribute;
-    m_getFunc = lai_linecard_api->get_linecard_attribute;
+    m_setFunc = otai_linecard_api->set_linecard_attribute;
+    m_getFunc = otai_linecard_api->get_linecard_attribute;
 
     for (auto i : g_linecard_state_attrs)
     {
-        auto meta = lai_metadata_get_attr_metadata(LAI_OBJECT_TYPE_LINECARD, i);
+        auto meta = otai_metadata_get_attr_metadata(OTAI_OBJECT_TYPE_LINECARD, i);
         if (meta == NULL)
         {   
             SWSS_LOG_ERROR("invalid attr, object=LINECARD, attr=%d", i);
@@ -166,15 +166,15 @@ void LinecardOrch::stopPreConfigProc()
 {
     SWSS_LOG_ENTER();
 
-    lai_status_t status;
-    lai_attribute_t attr;
+    otai_status_t status;
+    otai_attribute_t attr;
 
     SWSS_LOG_NOTICE("Pre-Config Finished.");
 
-    attr.id = LAI_LINECARD_ATTR_STOP_PRE_CONFIGURATION;
+    attr.id = OTAI_LINECARD_ATTR_STOP_PRE_CONFIGURATION;
     attr.value.booldata = true;
-    status = lai_linecard_api->set_linecard_attribute(gLinecardId, &attr);
-    if (status != LAI_STATUS_SUCCESS)
+    status = otai_linecard_api->set_linecard_attribute(gLinecardId, &attr);
+    if (status != OTAI_STATUS_SUCCESS)
     {
         SWSS_LOG_ERROR("Failed to notify Lai pre-config finish %d", status);
     }
@@ -283,11 +283,11 @@ void LinecardOrch::doTask(Consumer& consumer)
 
     const string& table_name = consumer.getTableName();
 
-    if (table_name == APP_LINECARD_TABLE_NAME)
+    if (table_name == APP_OT_LINECARD_TABLE_NAME)
     {
         doAppLinecardTableTask(consumer);
     }
-    else if (table_name == STATE_LINECARD_TABLE_NAME)
+    else if (table_name == STATE_OT_LINECARD_TABLE_NAME)
     {
         doLinecardStateTask(consumer);
     }
@@ -300,13 +300,13 @@ void LinecardOrch::createLinecard(
     SWSS_LOG_ENTER();
 
     string record_location = "/var/log/swss";
-    lai_attribute_t attr;
-    vector<lai_attribute_t> attrs;
-    lai_status_t status;
+    otai_attribute_t attr;
+    vector<otai_attribute_t> attrs;
+    otai_status_t status;
     bool is_board_mode_existed = false;
     string board_mode;
  
-    initLaiRedis(record_location, lairedis_rec_filename);
+    initLaiRedis(record_location, otairedis_rec_filename);
 
     for (auto fv: create_attrs)
     {
@@ -315,7 +315,7 @@ void LinecardOrch::createLinecard(
             SWSS_LOG_ERROR("Failed to translate linecard attr, %s", fv.first.c_str());
             continue;
         }
-        if (attr.id == LAI_LINECARD_ATTR_BOARD_MODE)
+        if (attr.id == OTAI_LINECARD_ATTR_BOARD_MODE)
         {
             is_board_mode_existed = true;
             board_mode = (attr.value.chardata);
@@ -326,23 +326,23 @@ void LinecardOrch::createLinecard(
 
     gFlexCounterOrch->initCounterTable();
 
-    attr.id = LAI_LINECARD_ATTR_LINECARD_ALARM_NOTIFY;
+    attr.id = OTAI_LINECARD_ATTR_LINECARD_ALARM_NOTIFY;
     attr.value.ptr = (void*)onLinecardAlarmNotify;
     attrs.push_back(attr);
 
-    attr.id = LAI_LINECARD_ATTR_LINECARD_STATE_CHANGE_NOTIFY;
+    attr.id = OTAI_LINECARD_ATTR_LINECARD_STATE_CHANGE_NOTIFY;
     attr.value.ptr = (void*)onLinecardStateChange;
     attrs.push_back(attr);
 
-    attr.id = LAI_LINECARD_ATTR_COLLECT_LINECARD_ALARM;
+    attr.id = OTAI_LINECARD_ATTR_COLLECT_LINECARD_ALARM;
     attr.value.booldata = true;
     attrs.push_back(attr);
 
-    attr.id = LAI_LINECARD_ATTR_LINECARD_OCM_SPECTRUM_POWER_NOTIFY;
+    attr.id = OTAI_LINECARD_ATTR_LINECARD_OCM_SPECTRUM_POWER_NOTIFY;
     attr.value.ptr = (void*)onOcmSpectrumPowerNotify;
     attrs.push_back(attr);
 
-    attr.id = LAI_LINECARD_ATTR_LINECARD_OTDR_RESULT_NOTIFY;
+    attr.id = OTAI_LINECARD_ATTR_LINECARD_OTDR_RESULT_NOTIFY;
     attr.value.ptr = (void*)onOtdrResultNotify;
     attrs.push_back(attr);
 
@@ -350,16 +350,16 @@ void LinecardOrch::createLinecard(
     {   
         SWSS_LOG_WARN("sync mode is depreacated, use -z param");
 
-        gRedisCommunicationMode = LAI_REDIS_COMMUNICATION_MODE_REDIS_SYNC;
+        gRedisCommunicationMode = OTAI_REDIS_COMMUNICATION_MODE_REDIS_SYNC;
     }   
 
-    attr.id = LAI_REDIS_LINECARD_ATTR_REDIS_COMMUNICATION_MODE;
+    attr.id = OTAI_REDIS_LINECARD_ATTR_REDIS_COMMUNICATION_MODE;
     attr.value.s32 = gRedisCommunicationMode;
 
-    lai_linecard_api->set_linecard_attribute(gLinecardId, &attr);
+    otai_linecard_api->set_linecard_attribute(gLinecardId, &attr);
 
-    status = lai_linecard_api->create_linecard(&gLinecardId, (uint32_t)attrs.size(), attrs.data());
-    if (status != LAI_STATUS_SUCCESS)
+    status = otai_linecard_api->create_linecard(&gLinecardId, (uint32_t)attrs.size(), attrs.data());
+    if (status != OTAI_STATUS_SUCCESS)
     {
         SWSS_LOG_ERROR("Failed to create a linecard, rv:%d", status);
         exit(EXIT_FAILURE);
@@ -368,10 +368,10 @@ void LinecardOrch::createLinecard(
 
     m_key2oid[key] = gLinecardId;
 
-    attr.id = LAI_LINECARD_ATTR_START_PRE_CONFIGURATION;
+    attr.id = OTAI_LINECARD_ATTR_START_PRE_CONFIGURATION;
     attr.value.booldata = true;
-    status = lai_linecard_api->set_linecard_attribute(gLinecardId, &attr);
-    if (status != LAI_STATUS_SUCCESS)
+    status = otai_linecard_api->set_linecard_attribute(gLinecardId, &attr);
+    if (status != OTAI_STATUS_SUCCESS)
     {
         SWSS_LOG_ERROR("Failed to notify Lai start pre-config %d", status);
     }
@@ -381,7 +381,7 @@ void LinecardOrch::createLinecard(
         setBoardMode(board_mode);
     }
 
-    FieldValueTuple tuple(lai_serialize_object_id(gLinecardId), key);
+    FieldValueTuple tuple(otai_serialize_object_id(gLinecardId), key);
     vector<FieldValueTuple> fields;
     fields.push_back(tuple);
     m_nameMapTable->set("", fields);
@@ -398,13 +398,13 @@ void LinecardOrch::setBoardMode(std::string mode)
     SWSS_LOG_ENTER();
 
     int wait_count = 0;
-    lai_attribute_t attr;
-    lai_status_t status;
+    otai_attribute_t attr;
+    otai_status_t status;
 
-    attr.id = LAI_LINECARD_ATTR_BOARD_MODE;
+    attr.id = OTAI_LINECARD_ATTR_BOARD_MODE;
     memset(attr.value.chardata, 0, sizeof(attr.value.chardata));
-    status = lai_linecard_api->get_linecard_attribute(gLinecardId, 1, &attr);
-    if (status == LAI_STATUS_SUCCESS && mode == attr.value.chardata)
+    status = otai_linecard_api->get_linecard_attribute(gLinecardId, 1, &attr);
+    if (status == OTAI_STATUS_SUCCESS && mode == attr.value.chardata)
     {
         SWSS_LOG_DEBUG("Linecard and maincard have a same board-mode, %s", mode.c_str());
         return;
@@ -414,8 +414,8 @@ void LinecardOrch::setBoardMode(std::string mode)
 
     memset(attr.value.chardata, 0, sizeof(attr.value.chardata));
     strncpy(attr.value.chardata, mode.c_str(), sizeof(attr.value.chardata) - 1);
-    status = lai_linecard_api->set_linecard_attribute(gLinecardId, &attr);
-    if (status != LAI_STATUS_SUCCESS)
+    status = otai_linecard_api->set_linecard_attribute(gLinecardId, &attr);
+    if (status != OTAI_STATUS_SUCCESS)
     {
         SWSS_LOG_ERROR("Failed to set board-mode status=%d, mode=%s",
                        status, mode.c_str());
@@ -426,8 +426,8 @@ void LinecardOrch::setBoardMode(std::string mode)
     {
         wait_count++;
         this_thread::sleep_for(chrono::milliseconds(1000));
-        status = lai_linecard_api->get_linecard_attribute(gLinecardId, 1, &attr);
-        if (status != LAI_STATUS_SUCCESS)
+        status = otai_linecard_api->get_linecard_attribute(gLinecardId, 1, &attr);
+        if (status != OTAI_STATUS_SUCCESS)
         {
             continue;
         }
@@ -441,7 +441,7 @@ void LinecardOrch::setBoardMode(std::string mode)
     SWSS_LOG_NOTICE("The end of setting board-mode");
 }
 
-void LinecardOrch::setFlexCounter(lai_object_id_t id)
+void LinecardOrch::setFlexCounter(otai_object_id_t id)
 {
     gFlexCounterOrch->getGaugeGroup()->setCounterIdList(id, CounterType::LINECARD_GAUGE, linecard_counter_ids_gauge);
     gFlexCounterOrch->getCounterGroup()->setCounterIdList(id, CounterType::LINECARD_COUNTER, linecard_counter_ids_counter);

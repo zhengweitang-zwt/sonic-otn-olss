@@ -1,6 +1,6 @@
 extern "C" {
-#include "lai.h"
-#include "laistatus.h"
+#include "otai.h"
+#include "otaistatus.h"
 }
 
 #include <fstream>
@@ -18,21 +18,21 @@ extern "C" {
 #include <sys/time.h>
 #include "timestamp.h"
 
-#include <lairedis.h>
+#include <otairedis.h>
 #include <logger.h>
 
 #include "orchdaemon.h"
-#include "lai_serialize.h"
-#include "laihelper.h"
+#include "otai_serialize.h"
+#include "otaihelper.h"
 #include <signal.h>
 
 using namespace std;
 using namespace swss;
 
-extern lai_linecard_api_t *lai_linecard_api;
+extern otai_linecard_api_t *otai_linecard_api;
 
 /* Global variables */
-lai_object_id_t gLinecardId = LAI_NULL_OBJECT_ID;
+otai_object_id_t gLinecardId = OTAI_NULL_OBJECT_ID;
 
 #define DEFAULT_BATCH_SIZE  128
 int gBatchSize = DEFAULT_BATCH_SIZE;
@@ -42,19 +42,19 @@ bool gSwssRecord = true;
 bool gLogRotate = false;
 bool gLaiRedisLogRotate = false;
 bool gSyncMode = false;
-lai_redis_communication_mode_t gRedisCommunicationMode = LAI_REDIS_COMMUNICATION_MODE_REDIS_ASYNC;
-string lairedis_rec_filename;
+otai_redis_communication_mode_t gRedisCommunicationMode = OTAI_REDIS_COMMUNICATION_MODE_REDIS_ASYNC;
+string otairedis_rec_filename;
 string gFlexcounterJsonFile;
 ofstream gRecordOfs;
 string gRecordFile;
 
 void usage()
 {
-    cout << "usage: orchagent [-h] [-r record_type] [-d record_location] [-f swss_rec_filename] [-j lairedis_rec_filename] [-b batch_size] [-m MAC] [-i INST_ID] [-s] [-z mode]" << endl;
+    cout << "usage: orchagent [-h] [-r record_type] [-d record_location] [-f swss_rec_filename] [-j otairedis_rec_filename] [-b batch_size] [-m MAC] [-i INST_ID] [-s] [-z mode]" << endl;
     cout << "    -h: display this message" << endl;
     cout << "    -r record_type: record orchagent logs with type (default 3)" << endl;
     cout << "                    0: do not record logs" << endl;
-    cout << "                    1: record LAI call sequence as lairedis.rec" << endl;
+    cout << "                    1: record OTAI call sequence as otairedis.rec" << endl;
     cout << "                    2: record SwSS task sequence as swss.rec" << endl;
     cout << "                    3: enable both above two records" << endl;
     cout << "    -d record_location: set record logs folder location (default .)" << endl;
@@ -63,7 +63,7 @@ void usage()
     cout << "    -s: enable synchronous mode (deprecated, use -z)" << endl;
     cout << "    -z: redis communication mode (redis_async|redis_sync|zmq_sync), default: redis_async" << endl;
     cout << "    -f swss_rec_filename: swss record log filename(default 'swss.rec')" << endl;
-    cout << "    -j lairedis_rec_filename: lairedis record log filename(default lairedis.rec)" << endl;
+    cout << "    -j otairedis_rec_filename: otairedis record log filename(default otairedis.rec)" << endl;
     cout << "    -c flexcounter_json_filename: flexcounter json filename" << endl;
 }
 
@@ -147,7 +147,7 @@ int main(int argc, char **argv)
             SWSS_LOG_NOTICE("Enabling synchronous mode");
             break;
         case 'z':
-            lai_deserialize_redis_communication_mode(optarg, gRedisCommunicationMode);
+            otai_deserialize_redis_communication_mode(optarg, gRedisCommunicationMode);
             break;
         case 'f':
             if (optarg)
@@ -158,7 +158,7 @@ int main(int argc, char **argv)
         case 'j':
             if (optarg)
             {
-                lairedis_rec_filename = optarg;
+                otairedis_rec_filename = optarg;
             }
             break;
         case 'c':

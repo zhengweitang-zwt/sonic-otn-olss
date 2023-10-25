@@ -5,14 +5,14 @@ Priority: optional
 Build-Depends: dh-exec (>=0.3), debhelper (>= 9), autotools-dev
 Standards-Version: 1.0.0
 
-Package: swss
+Package: otss
 Architecture: any
 Depends: ${shlibs:Depends}
 Description: This package contains Switch State Service for SONiC project.
 
-Package: swss-dbg
+Package: otss-dbg
 Architecture: any
 Section: debug
 Priority: extra
-Depends: swss (=${binary:Version})
-Description: debugging symbols for swss
+Depends: otss (=${binary:Version})
+Description: debugging symbols for otss

@@ -19,16 +19,16 @@ class FlexCounterStatManager : public FlexCounterManager
         ~FlexCounterStatManager();
 
         void addFlexCounterStat(
-                const lai_object_id_t object_id,
+                const otai_object_id_t object_id,
                 const CounterType counter_type,
                 const std::string& counter_stat);
         void removeFlexCounterStat(
-                const lai_object_id_t object_id,
+                const otai_object_id_t object_id,
                 const CounterType counter_type,
                 const std::string& counter_stat);
 
     private:
-        std::unordered_map<lai_object_id_t, std::unordered_set<std::string>> object_stats;
+        std::unordered_map<otai_object_id_t, std::unordered_set<std::string>> object_stats;
 };
 
 #endif // ORCHAGENT_FLEX_COUNTER_STAT_MANAGER_H

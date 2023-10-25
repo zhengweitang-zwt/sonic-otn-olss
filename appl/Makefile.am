@@ -1,6 +1,6 @@
 INCLUDES = -I $(top_srcdir)/lib -I $(top_srcdir)
 
-CFLAGS_LAI = -I /usr/include/lai
+CFLAGS_OTAI = -I /usr/include/otai
 
 swssdir = $(datadir)/swss
 

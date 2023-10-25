@@ -22,8 +22,8 @@
 #include <inttypes.h>
 #include <sys/time.h>
 #include "timestamp.h"
-#include "laiobjectorch.h"
-#include "lai_serialize.h"
+#include "otaiobjectorch.h"
+#include "otai_serialize.h"
 #include "linecardorch.h"
 #include "flexcounterorch.h"
 #include "converter.h"
@@ -40,15 +40,15 @@ using namespace swss;
 
 extern LinecardOrch *gLinecardOrch;
 extern FlexCounterOrch *gFlexCounterOrch;
-extern lai_object_id_t gLinecardId;
+extern otai_object_id_t gLinecardId;
 
 void LaiObjectOrch::localDataInit(DBConnector* db,
-                                  lai_object_type_t obj_type,
-                                  const vector<lai_attr_id_t>& cfg_attrs)
+                                  otai_object_type_t obj_type,
+                                  const vector<otai_attr_id_t>& cfg_attrs)
 {
     SWSS_LOG_ENTER();
 
-    m_objectName = lai_metadata_get_object_type_name(obj_type);
+    m_objectName = otai_metadata_get_object_type_name(obj_type);
     m_stateDb = shared_ptr<DBConnector>(new DBConnector("STATE_DB", 0));
     m_countersDb = shared_ptr<DBConnector>(new DBConnector("COUNTERS_DB", 0));
     m_vid2NameTable = unique_ptr<Table>(new Table(m_countersDb.get(), "VID2NAME"));
@@ -57,7 +57,7 @@ void LaiObjectOrch::localDataInit(DBConnector* db,
 
     for (auto i : cfg_attrs)
     {
-        auto meta = lai_metadata_get_attr_metadata(m_objectType, i);
+        auto meta = otai_metadata_get_attr_metadata(m_objectType, i);
         if (meta == NULL)
         {
             SWSS_LOG_ERROR("invalid attr, object=%s, attr=%d", m_objectName.c_str(), i);
@@ -87,8 +87,8 @@ void LaiObjectOrch::localDataInit(DBConnector* db,
 
 LaiObjectOrch::LaiObjectOrch(DBConnector* db,
     const vector<string>& table_names,
-    lai_object_type_t obj_type,
-    const vector<lai_attr_id_t>& cfg_attrs)
+    otai_object_type_t obj_type,
+    const vector<otai_attr_id_t>& cfg_attrs)
     : Orch(db, table_names), m_objectType(obj_type)
 {
     SWSS_LOG_ENTER();
@@ -98,8 +98,8 @@ LaiObjectOrch::LaiObjectOrch(DBConnector* db,
 
 LaiObjectOrch::LaiObjectOrch(DBConnector* db,
     vector<TableConnector> &connectors,
-    lai_object_type_t obj_type,
-    const vector<lai_attr_id_t>& cfg_attrs)
+    otai_object_type_t obj_type,
+    const vector<otai_attr_id_t>& cfg_attrs)
     : Orch(connectors), m_objectType(obj_type)
 {
     SWSS_LOG_ENTER();
@@ -109,8 +109,8 @@ LaiObjectOrch::LaiObjectOrch(DBConnector* db,
 
 LaiObjectOrch::LaiObjectOrch(DBConnector *db,
                              const vector<string> &table_names,
-                             lai_object_type_t obj_type,
-                             const vector<lai_attr_id_t> &cfg_attrs,
+                             otai_object_type_t obj_type,
+                             const vector<otai_attr_id_t> &cfg_attrs,
                              const vector<string> &auxiliary_fields)
     : LaiObjectOrch(db, table_names, obj_type, cfg_attrs)
 {
@@ -122,8 +122,8 @@ LaiObjectOrch::LaiObjectOrch(DBConnector *db,
 
 LaiObjectOrch::LaiObjectOrch(DBConnector *db,
                              vector<TableConnector> &connectors,
-                             lai_object_type_t obj_type,
-                             const vector<lai_attr_id_t> &cfg_attrs,
+                             otai_object_type_t obj_type,
+                             const vector<otai_attr_id_t> &cfg_attrs,
                              const vector<string> &auxiliary_fields)
     : LaiObjectOrch(db, connectors, obj_type, cfg_attrs)
 {
@@ -139,9 +139,9 @@ void LaiObjectOrch::doTask(NotificationConsumer& consumer)
 
     std::string op; 
     std::string data;
-    lai_status_t status;
+    otai_status_t status;
     std::vector<swss::FieldValueTuple> values;
-    lai_object_id_t oid = LAI_NULL_OBJECT_ID;
+    otai_object_id_t oid = OTAI_NULL_OBJECT_ID;
 
     if (&consumer != m_notificationConsumer)
     {
@@ -178,7 +178,7 @@ void LaiObjectOrch::doTask(NotificationConsumer& consumer)
             }
  
             status = setLaiObjectAttr(oid, field, value);
-            if (status != LAI_STATUS_SUCCESS)
+            if (status != OTAI_STATUS_SUCCESS)
             {
                 SWSS_LOG_ERROR("Failed to set attr, field=%s, value=%s, status=%d",
                     field.c_str(), value.c_str(), status);
@@ -198,7 +198,7 @@ void LaiObjectOrch::doTask(NotificationConsumer& consumer)
             string &field = fvField(values[i]);
 
             status = getLaiObjectAttr(oid, field, value);
-            if (status != LAI_STATUS_SUCCESS)
+            if (status != OTAI_STATUS_SUCCESS)
             {
                 SWSS_LOG_ERROR("Failed to get attr, field=%s, status=%d",
                     field.c_str(), status);
@@ -222,10 +222,10 @@ bool LaiObjectOrch::createLaiObject(const string &key)
 {
     SWSS_LOG_ENTER();
 
-    lai_status_t status;
-    lai_attribute_t attr;
-    vector<lai_attribute_t> attrs;
-    lai_object_id_t oid;
+    otai_status_t status;
+    otai_attribute_t attr;
+    vector<otai_attribute_t> attrs;
+    otai_object_id_t oid;
 
     map<string, string> &createonly_attrs = m_key2createonlyAttrs[key];
     for (auto fv: createonly_attrs)
@@ -242,7 +242,7 @@ bool LaiObjectOrch::createLaiObject(const string &key)
     addExtraAttrsOnCreate(attrs);
 
     status = m_createFunc(&oid, gLinecardId, static_cast<uint32_t>(attrs.size()), attrs.data());
-    if (status != LAI_STATUS_SUCCESS)
+    if (status != OTAI_STATUS_SUCCESS)
     {
         SWSS_LOG_ERROR("Failed to create %s|%s, rv=%d", m_objectName.c_str(), key.c_str(), status);
         return false;
@@ -261,7 +261,7 @@ bool LaiObjectOrch::createLaiObject(const string &key)
         SWSS_LOG_ERROR("Failed to get object info, %s", key.c_str());
     }
 
-    FieldValueTuple tuple(lai_serialize_object_id(oid), key);
+    FieldValueTuple tuple(otai_serialize_object_id(oid), key);
     vector<FieldValueTuple> fields;
     fields.push_back(tuple);
     m_nameMapTable->set("", fields);
@@ -275,7 +275,7 @@ bool LaiObjectOrch::createLaiObject(const string &key)
     return true;
 }
 
-void LaiObjectOrch::publishOperationResult(string channel, lai_status_t status_code, string message) 
+void LaiObjectOrch::publishOperationResult(string channel, otai_status_t status_code, string message) 
 {
     swss::NotificationProducer notifications(m_stateDb.get(), channel);
     std::vector<swss::FieldValueTuple> entry;
@@ -303,7 +303,7 @@ bool LaiObjectOrch::setLaiObjectAttrs(const string& key, map<string, string>& fi
     }
 
     string error_msg;
-    lai_status_t status = LAI_STATUS_SUCCESS;
+    otai_status_t status = OTAI_STATUS_SUCCESS;
 
     for (auto fv : field_values)
     {
@@ -312,7 +312,7 @@ bool LaiObjectOrch::setLaiObjectAttrs(const string& key, map<string, string>& fi
         SWSS_LOG_NOTICE("set field=%s value=%s", fv.first.c_str(), fv.second.c_str());
 
         status = setLaiObjectAttr(m_key2oid[key], fv.first, fv.second);
-        if (status != LAI_STATUS_SUCCESS)
+        if (status != OTAI_STATUS_SUCCESS)
         {
             SWSS_LOG_ERROR("Failed to set %s|%s %s to %s, status=%d",
                 m_objectName.c_str(),
@@ -350,7 +350,7 @@ bool LaiObjectOrch::setLaiObjectAttrs(const string& key, map<string, string>& fi
 bool LaiObjectOrch::translateLaiObjectAttr(
     _In_ const string &field,
     _In_ const string &value,
-    _Out_ lai_attribute_t &attr)
+    _Out_ otai_attribute_t &attr)
 {
     if (m_createandsetAttrs.find(field) != m_createandsetAttrs.end())
     {
@@ -366,7 +366,7 @@ bool LaiObjectOrch::translateLaiObjectAttr(
         return false;
     }
     
-    auto meta = lai_metadata_get_attr_metadata(m_objectType, attr.id);
+    auto meta = otai_metadata_get_attr_metadata(m_objectType, attr.id);
     if (meta == NULL)
     {
         SWSS_LOG_THROW("Unable to get %s metadata, attr=%d", m_objectName.c_str(), attr.id);
@@ -374,7 +374,7 @@ bool LaiObjectOrch::translateLaiObjectAttr(
 
     try
     {
-        lai_deserialize_attr_value(value, *meta, attr);
+        otai_deserialize_attr_value(value, *meta, attr);
     }
     catch (...)
     {
@@ -386,20 +386,20 @@ bool LaiObjectOrch::translateLaiObjectAttr(
     return true;
 }
 
-lai_status_t LaiObjectOrch::setLaiObjectAttr(
-    lai_object_id_t oid,
+otai_status_t LaiObjectOrch::setLaiObjectAttr(
+    otai_object_id_t oid,
     const string &field,
     const string &value)
 {
     SWSS_LOG_ENTER();
 
-    lai_status_t status;
-    lai_attribute_t attr;
+    otai_status_t status;
+    otai_attribute_t attr;
 
     if (m_createandsetAttrs.find(field) == m_createandsetAttrs.end())
     {
         SWSS_LOG_ERROR("Unsupported attr, %s|%s", m_objectName.c_str(), field.c_str());
-        return LAI_STATUS_FAILURE;
+        return OTAI_STATUS_FAILURE;
     }
 
     attr.id = m_createandsetAttrs[field];
@@ -408,11 +408,11 @@ lai_status_t LaiObjectOrch::setLaiObjectAttr(
     {
         SWSS_LOG_ERROR("Failed to translate attr, %s|%s",
                        m_objectName.c_str(), field.c_str());
-        return LAI_STATUS_FAILURE;
+        return OTAI_STATUS_FAILURE;
     }
 
     status = m_setFunc(oid, &attr);
-    if (status != LAI_STATUS_SUCCESS)
+    if (status != OTAI_STATUS_SUCCESS)
     {
         SWSS_LOG_ERROR("Failed to set %s attr, field=%s, value=%s, status=%d",
                        m_objectName.c_str(), field.c_str(), value.c_str(), status);
@@ -422,53 +422,53 @@ lai_status_t LaiObjectOrch::setLaiObjectAttr(
     SWSS_LOG_NOTICE("Set %s attr, pid:%" PRIx64 " field=%s, value=%s",
                      m_objectName.c_str(), oid, field.c_str(), value.c_str());
 
-    return LAI_STATUS_SUCCESS;
+    return OTAI_STATUS_SUCCESS;
 }
 
-lai_status_t LaiObjectOrch::getLaiObjectAttr(lai_object_id_t oid, const string &field, string &value)
+otai_status_t LaiObjectOrch::getLaiObjectAttr(otai_object_id_t oid, const string &field, string &value)
 {
     SWSS_LOG_ENTER();
 
-    lai_status_t status;
-    lai_attribute_t attr;
+    otai_status_t status;
+    otai_attribute_t attr;
     if (m_readonlyAttrs.find(field) == m_readonlyAttrs.end())
     {
         SWSS_LOG_ERROR("Unsupported attr, %s|%s", m_objectName.c_str(), field.c_str());
-        return LAI_STATUS_FAILURE;
+        return OTAI_STATUS_FAILURE;
     }
     attr.id = m_readonlyAttrs[field];
 
     status = m_getFunc(oid, 1, &attr);
-    if (status != LAI_STATUS_SUCCESS)
+    if (status != OTAI_STATUS_SUCCESS)
     {
         SWSS_LOG_ERROR("Failed to get %s attr, field=%s, status=%d",
                        m_objectName.c_str(), field.c_str(), status);
         return status;
     }
-    auto meta = lai_metadata_get_attr_metadata(m_objectType, attr.id);
+    auto meta = otai_metadata_get_attr_metadata(m_objectType, attr.id);
     if (meta == NULL)
     {   
         SWSS_LOG_ERROR("Unable to get %s metadata, attr=%d", m_objectName.c_str(), attr.id);
-        return LAI_STATUS_FAILURE; 
+        return OTAI_STATUS_FAILURE; 
     }
 
     try
     {
-        value = lai_serialize_attr_value(*meta, attr, false, true);
+        value = otai_serialize_attr_value(*meta, attr, false, true);
     }
     catch (...)
     {
         SWSS_LOG_ERROR("Failed to serialize attr value, %s|%s|%s",
                        m_objectName.c_str(), field.c_str(), value.c_str());
-        return LAI_STATUS_FAILURE;
+        return OTAI_STATUS_FAILURE;
     }
     SWSS_LOG_NOTICE("Get %s attr successed, pid:%" PRIx64 " field=%s, value=%s",
                     m_objectName.c_str(), oid, field.c_str(), value.c_str());
 
-    return LAI_STATUS_SUCCESS;
+    return OTAI_STATUS_SUCCESS;
 }
 
-bool LaiObjectOrch::syncStateTable(lai_object_id_t oid, const string &key)
+bool LaiObjectOrch::syncStateTable(otai_object_id_t oid, const string &key)
 {
     SWSS_LOG_ENTER();
 
@@ -684,7 +684,7 @@ void LaiObjectOrch::doStateTask(Consumer &consumer)
             continue;
         }
 
-        lai_object_id_t id = m_key2oid[key];
+        otai_object_id_t id = m_key2oid[key];
 
         string present;
 
@@ -698,7 +698,7 @@ void LaiObjectOrch::doStateTask(Consumer &consumer)
             if (present_value == "PRESENT")
             {
                 SWSS_LOG_NOTICE("setCounterIdList 0x%lx, key = %s", id, key.c_str());
-                vector<lai_attribute_t> attrs;
+                vector<otai_attribute_t> attrs;
                 setFlexCounter(id, attrs);
             }
             else if (present_value == "NOT_PRESENT")

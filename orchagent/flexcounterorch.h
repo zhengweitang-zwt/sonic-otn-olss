@@ -6,7 +6,7 @@
 #include "flex_counter_manager.h"
 
 extern "C" {
-#include "lai.h"
+#include "otai.h"
 }
 
 #define STAT_GAUGE_FLEX_COUNTER_GROUP "1S_STAT_GAUGE"

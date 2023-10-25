@@ -5,7 +5,7 @@
 #include <map>
 #include <tuple>
 #include "orch.h"
-#include "laihelper.h"
+#include "otaihelper.h"
 #include "notifier.h"
 #include "notificationproducer.h"
 #include "notifications.h"
@@ -14,25 +14,25 @@
 using namespace std;
 using namespace swss;
 
-extern lai_object_id_t gLinecardId;
+extern otai_object_id_t gLinecardId;
 
-typedef lai_status_t (*CreateObjectFunc)(
-        lai_object_id_t *oid,
-        lai_object_id_t linecard_id,
+typedef otai_status_t (*CreateObjectFunc)(
+        otai_object_id_t *oid,
+        otai_object_id_t linecard_id,
         uint32_t attr_count,
-        const lai_attribute_t *attr_list);
+        const otai_attribute_t *attr_list);
 
-typedef lai_status_t (*RemoveObjectFunc)(
-        lai_object_id_t oid);
+typedef otai_status_t (*RemoveObjectFunc)(
+        otai_object_id_t oid);
 
-typedef lai_status_t (*SetObjectAttrFunc)(
-        lai_object_id_t oid,
-        const lai_attribute_t *attr);
+typedef otai_status_t (*SetObjectAttrFunc)(
+        otai_object_id_t oid,
+        const otai_attribute_t *attr);
 
-typedef lai_status_t (*GetObjectAttrFunc)(
-        lai_object_id_t oid,
+typedef otai_status_t (*GetObjectAttrFunc)(
+        otai_object_id_t oid,
         uint32_t attr_count,
-        lai_attribute_t *attr_list);
+        otai_attribute_t *attr_list);
 
 typedef enum _ConfigState_E
 {
@@ -49,29 +49,29 @@ public:
 
     LaiObjectOrch(DBConnector *db,
                   const vector<string> &table_names,
-                  lai_object_type_t obj_type,
-                  const vector<lai_attr_id_t> &cfg_attrs);
+                  otai_object_type_t obj_type,
+                  const vector<otai_attr_id_t> &cfg_attrs);
 
     LaiObjectOrch(DBConnector *db,
                   const vector<string> &table_names,
-                  lai_object_type_t obj_type,
-                  const vector<lai_attr_id_t> &cfg_attrs,
+                  otai_object_type_t obj_type,
+                  const vector<otai_attr_id_t> &cfg_attrs,
                   const vector<string> &auxiliary_fields);
 
     LaiObjectOrch(DBConnector *db,
                   vector<TableConnector> &connectors,
-                  lai_object_type_t obj_type,
-                  const vector<lai_attr_id_t> &cfg_attrs);
+                  otai_object_type_t obj_type,
+                  const vector<otai_attr_id_t> &cfg_attrs);
 
     LaiObjectOrch(DBConnector *db,
                   vector<TableConnector> &connectors,
-                  lai_object_type_t obj_type,
-                  const vector<lai_attr_id_t> &cfg_attrs,
+                  otai_object_type_t obj_type,
+                  const vector<otai_attr_id_t> &cfg_attrs,
                   const vector<string> &auxiliary_fields);
 
     void localDataInit(DBConnector* db,
-                       lai_object_type_t obj_type,
-                       const vector<lai_attr_id_t>& cfg_attrs);
+                       otai_object_type_t obj_type,
+                       const vector<otai_attr_id_t>& cfg_attrs);
 
     void doTask(Consumer &consumer);
 
@@ -81,9 +81,9 @@ public:
 
     bool createLaiObject(const string &key);
 
-    virtual void addExtraAttrsOnCreate(vector<lai_attribute_t> &attrs) {};
+    virtual void addExtraAttrsOnCreate(vector<otai_attribute_t> &attrs) {};
 
-    bool syncStateTable(lai_object_id_t oid, const string &key);
+    bool syncStateTable(otai_object_id_t oid, const string &key);
 
     bool setLaiObjectAttrs(const string &key,
                            map<string, string> &field_values,
@@ -93,13 +93,13 @@ public:
                                      vector<FieldValueTuple> &auxiliary_fv,
                                      string operation_id="");
 
-    lai_status_t setLaiObjectAttr(lai_object_id_t oid, const string &field, const string &value);
+    otai_status_t setLaiObjectAttr(otai_object_id_t oid, const string &field, const string &value);
 
-    lai_status_t getLaiObjectAttr(lai_object_id_t oid, const string &field, string &value);
+    otai_status_t getLaiObjectAttr(otai_object_id_t oid, const string &field, string &value);
 
-    virtual void setFlexCounter(lai_object_id_t id, vector<lai_attribute_t> &attrs){};
+    virtual void setFlexCounter(otai_object_id_t id, vector<otai_attribute_t> &attrs){};
 
-    virtual void clearFlexCounter(lai_object_id_t id, string key){};
+    virtual void clearFlexCounter(otai_object_id_t id, string key){};
 
     virtual void doSubobjectStateTask(const string &key, const string &present){};
 
@@ -107,7 +107,7 @@ public:
 
     bool translateLaiObjectAttr(_In_ const string &field,
                                 _In_ const string &value,
-                                _Out_ lai_attribute_t &attr);
+                                _Out_ otai_attribute_t &attr);
 
 protected:
 
@@ -131,32 +131,32 @@ protected:
 
     GetObjectAttrFunc m_getFunc;
 
-    lai_object_type_t m_objectType;
+    otai_object_type_t m_objectType;
 
     string m_objectName;
 
     /*
-     * Attributes that can be modified by LAI at anytime.
+     * Attributes that can be modified by OTAI at anytime.
      */
 
-    map<string, lai_attr_id_t> m_createandsetAttrs;
+    map<string, otai_attr_id_t> m_createandsetAttrs;
 
     /*
      * Attributes that can only be set during creation.
      */
 
-    map<string, lai_attr_id_t> m_createonlyAttrs;
+    map<string, otai_attr_id_t> m_createonlyAttrs;
 
     /*
-     * Irrecoverable attributes like LAI_LINECARD_ATTR_RESET.
+     * Irrecoverable attributes like OTAI_LINECARD_ATTR_RESET.
      * These attributes are modified by notification channels instead of config table.
      */
 
-    map<string, lai_attr_id_t> m_irrecoverableAttrs;
+    map<string, otai_attr_id_t> m_irrecoverableAttrs;
 
-    map<string, lai_attr_id_t> m_mandatoryAttrs;
+    map<string, otai_attr_id_t> m_mandatoryAttrs;
 
-    map<string, lai_attr_id_t> m_readonlyAttrs;
+    map<string, otai_attr_id_t> m_readonlyAttrs;
 
     ConfigState_E m_configState = CONFIG_MISSING;
 
@@ -164,7 +164,7 @@ protected:
 
     set<string> m_keys;
 
-    map<string, lai_object_id_t> m_key2oid;
+    map<string, otai_object_id_t> m_key2oid;
 
     map<string, map<string, string>> m_key2createonlyAttrs;
 

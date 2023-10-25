@@ -5,7 +5,7 @@
 #include "schema.h"
 #include "rediscommand.h"
 #include "logger.h"
-#include "lai_serialize.h"
+#include "otai_serialize.h"
 
 using std::shared_ptr;
 using std::string;
@@ -35,61 +35,61 @@ const unordered_map<bool, string> FlexCounterManager::status_lookup =
 
 const unordered_map<CounterType, string> FlexCounterManager::counter_id_field_lookup =
 {
-    { CounterType::LINECARD_STATUS,  LINECARD_STATUS_ID_LIST },
-    { CounterType::LINECARD_GAUGE,   LINECARD_GAUGE_ID_LIST },
-    { CounterType::LINECARD_COUNTER, LINECARD_COUNTER_ID_LIST },
+    { CounterType::LINECARD_STATUS,  OT_LINECARD_STATUS_ID_LIST },
+    { CounterType::LINECARD_GAUGE,   OT_LINECARD_GAUGE_ID_LIST },
+    { CounterType::LINECARD_COUNTER, OT_LINECARD_COUNTER_ID_LIST },
 
-    { CounterType::PORT_STATUS,   PORT_STATUS_ID_LIST },
-    { CounterType::PORT_GAUGE,    PORT_GAUGE_ID_LIST },
-    { CounterType::INPORT_GAUGE,  INPORT_GAUGE_ID_LIST },
-    { CounterType::OUTPORT_GAUGE, OUTPORT_GAUGE_ID_LIST },
+    { CounterType::PORT_STATUS,   OT_PORT_STATUS_ID_LIST },
+    { CounterType::PORT_GAUGE,    OT_PORT_GAUGE_ID_LIST },
+    { CounterType::INPORT_GAUGE,  OT_INPORT_GAUGE_ID_LIST },
+    { CounterType::OUTPORT_GAUGE, OT_OUTPORT_GAUGE_ID_LIST },
 
-    { CounterType::TRANSCEIVER_STATUS, TRANSCEIVER_STATUS_ID_LIST },
-    { CounterType::TRANSCEIVER_GAUGE,  TRANSCEIVER_GAUGE_ID_LIST },
-    { CounterType::TRANSCEIVER_COUNTER,TRANSCEIVER_COUNTER_ID_LIST },
+    { CounterType::TRANSCEIVER_STATUS, OT_TRANSCEIVER_STATUS_ID_LIST },
+    { CounterType::TRANSCEIVER_GAUGE,  OT_TRANSCEIVER_GAUGE_ID_LIST },
+    { CounterType::TRANSCEIVER_COUNTER,OT_TRANSCEIVER_COUNTER_ID_LIST },
 
-    { CounterType::LOGICALCH_STATUS,   LOGICALCH_STATUS_ID_LIST },
-    { CounterType::LOGICALCH_COUNTER,  LOGICALCH_COUNTER_ID_LIST },
+    { CounterType::LOGICALCH_STATUS,   OT_LOGICALCH_STATUS_ID_LIST },
+    { CounterType::LOGICALCH_COUNTER,  OT_LOGICALCH_COUNTER_ID_LIST },
 
-    { CounterType::OTN_STATUS,         OTN_STATUS_ID_LIST },
-    { CounterType::OTN_GAUGE,          OTN_GAUGE_ID_LIST },
-    { CounterType::OTN_COUNTER,        OTN_COUNTER_ID_LIST },
+    { CounterType::OTN_STATUS,         OT_OTN_STATUS_ID_LIST },
+    { CounterType::OTN_GAUGE,          OT_OTN_GAUGE_ID_LIST },
+    { CounterType::OTN_COUNTER,        OT_OTN_COUNTER_ID_LIST },
 
-    { CounterType::ETHERNET_STATUS,    ETHERNET_STATUS_ID_LIST },
-    { CounterType::ETHERNET_COUNTER,   ETHERNET_COUNTER_ID_LIST },
+    { CounterType::ETHERNET_STATUS,    OT_ETHERNET_STATUS_ID_LIST },
+    { CounterType::ETHERNET_COUNTER,   OT_ETHERNET_COUNTER_ID_LIST },
 
-    { CounterType::PHYSICALCH_STATUS,  PHYSICALCH_STATUS_ID_LIST },
-    { CounterType::PHYSICALCH_GAUGE,   PHYSICALCH_GAUGE_ID_LIST },
-    { CounterType::PHYSICALCH_COUNTER, PHYSICALCH_COUNTER_ID_LIST },
+    { CounterType::PHYSICALCH_STATUS,  OT_PHYSICALCH_STATUS_ID_LIST },
+    { CounterType::PHYSICALCH_GAUGE,   OT_PHYSICALCH_GAUGE_ID_LIST },
+    { CounterType::PHYSICALCH_COUNTER, OT_PHYSICALCH_COUNTER_ID_LIST },
 
-    { CounterType::OPTICALCH_STATUS,  OPTICALCH_STATUS_ID_LIST },
-    { CounterType::OPTICALCH_GAUGE,   OPTICALCH_GAUGE_ID_LIST },
-    { CounterType::OPTICALCH_COUNTER, OPTICALCH_COUNTER_ID_LIST },
+    { CounterType::OPTICALCH_STATUS,  OT_OPTICALCH_STATUS_ID_LIST },
+    { CounterType::OPTICALCH_GAUGE,   OT_OPTICALCH_GAUGE_ID_LIST },
+    { CounterType::OPTICALCH_COUNTER, OT_OPTICALCH_COUNTER_ID_LIST },
 
-    { CounterType::LLDP_STATUS, LLDP_STATUS_ID_LIST },
+    { CounterType::LLDP_STATUS, OT_LLDP_STATUS_ID_LIST },
 
-    { CounterType::ASSIGNMENT_STATUS, ASSIGNMENT_STATUS_ID_LIST },
+    { CounterType::ASSIGNMENT_STATUS, OT_ASSIGNMENT_STATUS_ID_LIST },
 
-    { CounterType::INTERFACE_STATUS,  INTERFACE_STATUS_ID_LIST },
+    { CounterType::INTERFACE_STATUS,  OT_INTERFACE_STATUS_ID_LIST },
 
-    { CounterType::INTERFACE_COUNTER, INTERFACE_COUNTER_ID_LIST },
+    { CounterType::INTERFACE_COUNTER, OT_INTERFACE_COUNTER_ID_LIST },
 
-    { CounterType::OA_STATUS, OA_STATUS_ID_LIST },
-    { CounterType::OA_GAUGE, OA_GAUGE_ID_LIST },
+    { CounterType::OA_STATUS, OT_OA_STATUS_ID_LIST },
+    { CounterType::OA_GAUGE, OT_OA_GAUGE_ID_LIST },
 
-    { CounterType::OSC_STATUS, OSC_STATUS_ID_LIST },
-    { CounterType::OSC_GAUGE, OSC_GAUGE_ID_LIST },
+    { CounterType::OSC_STATUS, OT_OSC_STATUS_ID_LIST },
+    { CounterType::OSC_GAUGE, OT_OSC_GAUGE_ID_LIST },
 
-    { CounterType::APS_STATUS, APS_STATUS_ID_LIST },
+    { CounterType::APS_STATUS, OT_APS_STATUS_ID_LIST },
 
-    { CounterType::APSPORT_STATUS, APSPORT_STATUS_ID_LIST },
-    { CounterType::APSPORT_GAUGE, APSPORT_GAUGE_ID_LIST },
+    { CounterType::APSPORT_STATUS, OT_APSPORT_STATUS_ID_LIST },
+    { CounterType::APSPORT_GAUGE, OT_APSPORT_GAUGE_ID_LIST },
 
-    { CounterType::ATTENUATOR_STATUS, ATTENUATOR_STATUS_ID_LIST },
-    { CounterType::ATTENUATOR_GAUGE, ATTENUATOR_GAUGE_ID_LIST },
+    { CounterType::ATTENUATOR_STATUS, OT_ATTENUATOR_STATUS_ID_LIST },
+    { CounterType::ATTENUATOR_GAUGE, OT_ATTENUATOR_GAUGE_ID_LIST },
 
-    { CounterType::OCM_STATUS, OCM_STATUS_ID_LIST },
-    { CounterType::OTDR_STATUS, OTDR_STATUS_ID_LIST },
+    { CounterType::OCM_STATUS, OT_OCM_STATUS_ID_LIST },
+    { CounterType::OTDR_STATUS, OT_OTDR_STATUS_ID_LIST },
 };
 
 FlexCounterManager::FlexCounterManager(
@@ -226,7 +226,7 @@ void FlexCounterManager::disableFlexCounterGroup()
 // setCounterIdList configures a flex counter to poll the set of provided stats
 // that are associated with the given object.
 void FlexCounterManager::setCounterIdList(
-    const lai_object_id_t object_id,
+    const otai_object_id_t object_id,
     const CounterType counter_type,
     const unordered_set<string>& counter_stats)
 {
@@ -254,7 +254,7 @@ void FlexCounterManager::setCounterIdList(
 
 // clearCounterIdList clears all stats that are currently being polled from
 // the given object.
-void FlexCounterManager::clearCounterIdList(const lai_object_id_t object_id)
+void FlexCounterManager::clearCounterIdList(const otai_object_id_t object_id)
 {
     SWSS_LOG_ENTER();
 
@@ -277,11 +277,11 @@ void FlexCounterManager::clearCounterIdList(const lai_object_id_t object_id)
 
 string FlexCounterManager::getFlexCounterTableKey(
     const string& group_name,
-    const lai_object_id_t object_id) const
+    const otai_object_id_t object_id) const
 {
     SWSS_LOG_ENTER();
 
-    return group_name + flex_counter_table->getTableNameSeparator() + lai_serialize_object_id(object_id);
+    return group_name + flex_counter_table->getTableNameSeparator() + otai_serialize_object_id(object_id);
 }
 
 // serializeCounterStats turns a set of stats into a format suitable for FLEX_COUNTER_DB.

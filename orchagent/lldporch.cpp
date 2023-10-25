@@ -25,10 +25,10 @@ extern FlexCounterOrch *gFlexCounterOrch;
 
 extern std::unordered_set<std::string> lldp_counter_ids_status;
 
-vector<lai_attr_id_t> g_lldp_cfg_attrs =
+vector<otai_attr_id_t> g_lldp_cfg_attrs =
 {
-    LAI_LLDP_ATTR_CHANNEL_ID,
-    LAI_LLDP_ATTR_ENABLED,
+    OTAI_LLDP_ATTR_CHANNEL_ID,
+    OTAI_LLDP_ATTR_ENABLED,
 };
 
 vector<string> g_lldp_auxiliary_fields =
@@ -37,24 +37,24 @@ vector<string> g_lldp_auxiliary_fields =
 };
 
 LldpOrch::LldpOrch(DBConnector *db, const vector<string> &table_names)
-    : LaiObjectOrch(db, table_names, LAI_OBJECT_TYPE_LLDP, g_lldp_cfg_attrs, g_lldp_auxiliary_fields)
+    : LaiObjectOrch(db, table_names, OTAI_OBJECT_TYPE_LLDP, g_lldp_cfg_attrs, g_lldp_auxiliary_fields)
 {
-    m_stateTable = unique_ptr<Table>(new Table(m_stateDb.get(), STATE_LLDP_TABLE_NAME));
-    m_countersTable = COUNTERS_LLDP_TABLE_NAME;
-    m_nameMapTable = unique_ptr<Table>(new Table(m_countersDb.get(), COUNTERS_LLDP_NAME_MAP));
+    m_stateTable = unique_ptr<Table>(new Table(m_stateDb.get(), STATE_OT_LLDP_TABLE_NAME));
+    m_countersTable = COUNTERS_OT_LLDP_TABLE_NAME;
+    m_nameMapTable = unique_ptr<Table>(new Table(m_countersDb.get(), COUNTERS_OT_LLDP_NAME_MAP));
 
-    m_notificationConsumer = new NotificationConsumer(db, LLDP_NOTIFICATION);
-    auto notifier = new Notifier(m_notificationConsumer, this, LLDP_NOTIFICATION);
+    m_notificationConsumer = new NotificationConsumer(db, OT_LLDP_NOTIFICATION);
+    auto notifier = new Notifier(m_notificationConsumer, this, OT_LLDP_NOTIFICATION);
     Orch::addExecutor(notifier);
-    m_notificationProducer = new NotificationProducer(db, LLDP_REPLY);
+    m_notificationProducer = new NotificationProducer(db, OT_LLDP_REPLY);
 
-    m_createFunc = lai_lldp_api->create_lldp;
-    m_removeFunc = lai_lldp_api->remove_lldp;
-    m_setFunc = lai_lldp_api->set_lldp_attribute;
-    m_getFunc = lai_lldp_api->get_lldp_attribute;
+    m_createFunc = otai_lldp_api->create_lldp;
+    m_removeFunc = otai_lldp_api->remove_lldp;
+    m_setFunc = otai_lldp_api->set_lldp_attribute;
+    m_getFunc = otai_lldp_api->get_lldp_attribute;
 }
 
-void LldpOrch::setFlexCounter(lai_object_id_t id, vector<lai_attribute_t> &attrs)
+void LldpOrch::setFlexCounter(otai_object_id_t id, vector<otai_attribute_t> &attrs)
 {            
     gFlexCounterOrch->getStatusGroup()->setCounterIdList(id, CounterType::LLDP_STATUS, lldp_counter_ids_status);
 }

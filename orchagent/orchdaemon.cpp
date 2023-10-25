@@ -3,7 +3,7 @@
 #include <limits.h>
 #include "orchdaemon.h"
 #include "logger.h"
-#include <lairedis.h>
+#include <otairedis.h>
 
 using namespace std;
 using namespace swss;
@@ -11,8 +11,8 @@ using namespace swss;
 /* select() function timeout retry time */
 #define SELECT_TIMEOUT 1000
 
-extern lai_linecard_api_t* lai_linecard_api;
-extern lai_object_id_t             gLinecardId;
+extern otai_linecard_api_t* otai_linecard_api;
+extern otai_object_id_t             gLinecardId;
 extern bool                        gLaiRedisLogRotate;
 
 /*
@@ -71,8 +71,8 @@ bool OrchDaemon::init()
 {
     SWSS_LOG_ENTER();
 
-    TableConnector app_linecard_table(m_applDb, APP_LINECARD_TABLE_NAME);
-    TableConnector state_linecard_table(m_stateDb, STATE_LINECARD_TABLE_NAME);
+    TableConnector app_linecard_table(m_applDb, APP_OT_LINECARD_TABLE_NAME);
+    TableConnector state_linecard_table(m_stateDb, STATE_OT_LINECARD_TABLE_NAME);
 
     vector<TableConnector> linecard_tables = {
         app_linecard_table,
@@ -81,60 +81,60 @@ bool OrchDaemon::init()
     gLinecardOrch = new LinecardOrch(m_applDb, linecard_tables);
 
     const vector<string> port_tables = {
-        APP_PORT_TABLE_NAME,
+        APP_OT_PORT_TABLE_NAME,
     };
     gPortOrch = new PortOrch(m_applDb, port_tables);
 
-    TableConnector app_transceiver_table(m_applDb, APP_TRANSCEIVER_TABLE_NAME);
-    TableConnector state_transceiver_table(m_stateDb, STATE_TRANSCEIVER_TABLE_NAME);
+    TableConnector app_transceiver_table(m_applDb, APP_OT_TRANSCEIVER_TABLE_NAME);
+    TableConnector state_transceiver_table(m_stateDb, STATE_OT_TRANSCEIVER_TABLE_NAME);
     vector<TableConnector> transceiver_tables = {
         app_transceiver_table,
         state_transceiver_table,
     };
     gTransceiverOrch = new TransceiverOrch(m_applDb, transceiver_tables);
 
-    TableConnector app_otn_table(m_applDb, APP_OTN_TABLE_NAME);
-    TableConnector state_otn_table(m_stateDb, STATE_OTN_TABLE_NAME);
+    TableConnector app_otn_table(m_applDb, APP_OT_OTN_TABLE_NAME);
+    TableConnector state_otn_table(m_stateDb, STATE_OT_OTN_TABLE_NAME);
     vector<TableConnector> otn_tables = {
         app_otn_table,
         state_otn_table,
     };
     gOtnOrch = new OtnOrch(m_applDb, otn_tables);
 
-    TableConnector app_ethernet_table(m_applDb, APP_ETHERNET_TABLE_NAME);
-    TableConnector state_ethernet_table(m_stateDb, STATE_ETHERNET_TABLE_NAME);
+    TableConnector app_ethernet_table(m_applDb, APP_OT_ETHERNET_TABLE_NAME);
+    TableConnector state_ethernet_table(m_stateDb, STATE_OT_ETHERNET_TABLE_NAME);
     vector<TableConnector> ethernet_tables = {
         app_ethernet_table,
         state_ethernet_table,
     };
     gEthernetOrch = new EthernetOrch(m_applDb, ethernet_tables);
 
-    TableConnector app_och_table(m_applDb, APP_OCH_TABLE_NAME);
-    TableConnector state_och_table(m_stateDb, STATE_OCH_TABLE_NAME);
+    TableConnector app_och_table(m_applDb, APP_OT_OCH_TABLE_NAME);
+    TableConnector state_och_table(m_stateDb, STATE_OT_OCH_TABLE_NAME);
     vector<TableConnector> och_tables = {
         app_och_table,
         state_och_table,
     };
     gOchOrch = new OchOrch(m_applDb, och_tables);
 
-    TableConnector app_logical_channel_table(m_applDb, APP_LOGICALCHANNEL_TABLE_NAME);
-    TableConnector state_logical_channel_table(m_stateDb, STATE_LOGICALCHANNEL_TABLE_NAME);
+    TableConnector app_logical_channel_table(m_applDb, APP_OT_LOGICALCHANNEL_TABLE_NAME);
+    TableConnector state_logical_channel_table(m_stateDb, STATE_OT_LOGICALCHANNEL_TABLE_NAME);
     vector<TableConnector> logical_channel_tables = {
         app_logical_channel_table,
         state_logical_channel_table,
     };
     gLogicalChannelOrch = new LogicalChannelOrch(m_applDb, logical_channel_tables);
 
-    TableConnector app_physical_channel_table(m_applDb, APP_PHYSICALCHANNEL_TABLE_NAME);
-    TableConnector state_physical_channel_table(m_stateDb, STATE_PHYSICALCHANNEL_TABLE_NAME);
+    TableConnector app_physical_channel_table(m_applDb, APP_OT_PHYSICALCHANNEL_TABLE_NAME);
+    TableConnector state_physical_channel_table(m_stateDb, STATE_OT_PHYSICALCHANNEL_TABLE_NAME);
     vector<TableConnector> physical_channel_tables = {
         app_physical_channel_table,
         state_physical_channel_table,
     };
     gPhysicalChannelOrch = new PhysicalChannelOrch(m_applDb, physical_channel_tables);
 
-    TableConnector app_interface_table(m_applDb, APP_INTERFACE_TABLE_NAME);
-    TableConnector state_interface_table(m_stateDb, STATE_INTERFACE_TABLE_NAME);
+    TableConnector app_interface_table(m_applDb, APP_OT_INTERFACE_TABLE_NAME);
+    TableConnector state_interface_table(m_stateDb, STATE_OT_INTERFACE_TABLE_NAME);
     vector<TableConnector> interface_tables = {
         app_interface_table,
         state_interface_table,
@@ -142,47 +142,47 @@ bool OrchDaemon::init()
     gInterfaceOrch = new InterfaceOrch(m_applDb, interface_tables);
 
     const vector<string> assignment_tables = {
-        APP_ASSIGNMENT_TABLE_NAME,
+        APP_OT_ASSIGNMENT_TABLE_NAME,
     };
     gAssignmentOrch = new AssignmentOrch(m_applDb, assignment_tables);
 
     const vector<string> oa_tables = {
-        APP_OA_TABLE_NAME,
+        APP_OT_OA_TABLE_NAME,
     };
     gOaOrch = new OaOrch(m_applDb, oa_tables);
 
     const vector<string> osc_tables = {
-        APP_OSC_TABLE_NAME,
+        APP_OT_OSC_TABLE_NAME,
     };
     gOscOrch = new OscOrch(m_applDb, osc_tables);
 
     const vector<string> aps_tables = {
-        APP_APS_TABLE_NAME,
+        APP_OT_APS_TABLE_NAME,
     };
     gApsOrch = new ApsOrch(m_applDb, aps_tables);
 
     const vector<string> apsport_tables = {
-        APP_APSPORT_TABLE_NAME,
+        APP_OT_APSPORT_TABLE_NAME,
     };
     gApsportOrch = new ApsportOrch(m_applDb, apsport_tables);
 
     const vector<string> attenuator_tables = {
-        APP_ATTENUATOR_TABLE_NAME,
+        APP_OT_ATTENUATOR_TABLE_NAME,
     };
     gAttenuatorOrch = new AttenuatorOrch(m_applDb, attenuator_tables);
 
     const vector<string> ocm_tables = {
-        APP_OCM_TABLE_NAME,
+        APP_OT_OCM_TABLE_NAME,
     };
     gOcmOrch = new OcmOrch(m_applDb, ocm_tables);
 
     const vector<string> otdr_tables = {
-        APP_OTDR_TABLE_NAME,
+        APP_OT_OTDR_TABLE_NAME,
     };
     gOtdrOrch = new OtdrOrch(m_applDb, otdr_tables);
 
     const vector<string> lldp_tables = {
-        APP_LLDP_TABLE_NAME,
+        APP_OT_LLDP_TABLE_NAME,
     };
     gLldpOrch = new LldpOrch(m_applDb, lldp_tables);
 
@@ -231,16 +231,16 @@ bool OrchDaemon::init()
     return true;
 }
 
-/* Flush redis through lairedis interface */
+/* Flush redis through otairedis interface */
 void OrchDaemon::flush()
 {
     SWSS_LOG_ENTER();
 
-    lai_attribute_t attr;
+    otai_attribute_t attr;
     memset(&attr, 0, sizeof(attr));
-    attr.id = LAI_REDIS_LINECARD_ATTR_FLUSH;
-    lai_status_t status = lai_linecard_api->set_linecard_attribute(gLinecardId, &attr);
-    if (status != LAI_STATUS_SUCCESS)
+    attr.id = OTAI_REDIS_LINECARD_ATTR_FLUSH;
+    otai_status_t status = otai_linecard_api->set_linecard_attribute(gLinecardId, &attr);
+    if (status != OTAI_STATUS_SUCCESS)
     {
         SWSS_LOG_ERROR("Failed to flush redis pipeline %d", status);
         exit(EXIT_FAILURE);
@@ -253,10 +253,10 @@ void OrchDaemon::flush()
 
         gLaiRedisLogRotate = false;
 
-        attr.id = LAI_REDIS_LINECARD_ATTR_PERFORM_LOG_ROTATE;
+        attr.id = OTAI_REDIS_LINECARD_ATTR_PERFORM_LOG_ROTATE;
         attr.value.booldata = true;
 
-        lai_linecard_api->set_linecard_attribute(gLinecardId, &attr);
+        otai_linecard_api->set_linecard_attribute(gLinecardId, &attr);
     }
 }
 
@@ -284,7 +284,7 @@ void OrchDaemon::start()
 
         if (ret == Select::TIMEOUT)
         {
-            /* Let lairedis to flush all LAI function call to ASIC DB.
+            /* Let otairedis to flush all OTAI function call to ASIC DB.
              * Normally the redis pipeline will flush when enough request
              * accumulated. Still it is possible that small amount of
              * requests live in it. When the daemon has nothing to do, it

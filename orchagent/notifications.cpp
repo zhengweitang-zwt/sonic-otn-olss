@@ -1,5 +1,5 @@
 extern "C" {
-#include "lai.h"
+#include "otai.h"
 }
 #include <vector>
 #include <inttypes.h>
@@ -9,7 +9,7 @@ extern "C" {
 #include "notifications.h"
 #include "orchfsm.h"
 #include "notificationproducer.h"
-#include "lai_serialize.h"
+#include "otai_serialize.h"
 
 using namespace std;
 using namespace swss;
@@ -44,40 +44,40 @@ void onLinecardActive()
 }
 
 void onLinecardStateChange(
-        _In_ lai_object_id_t linecard_id,
-        _In_ lai_oper_status_t linecard_oper_status)
+        _In_ otai_object_id_t linecard_id,
+        _In_ otai_oper_status_t linecard_oper_status)
 {
     SWSS_LOG_ENTER();
 
     SWSS_LOG_NOTICE("linecard state change oper_status=%d", linecard_oper_status);
 
-    if (linecard_oper_status == LAI_OPER_STATUS_ACTIVE)
+    if (linecard_oper_status == OTAI_OPER_STATUS_ACTIVE)
     {
         OrchFSM::setState(ORCH_STATE_WORK);
 
         onLinecardActive();
     }
-    else if (linecard_oper_status == LAI_OPER_STATUS_INACTIVE)
+    else if (linecard_oper_status == OTAI_OPER_STATUS_INACTIVE)
     {
         OrchFSM::setState(ORCH_STATE_PAUSE);
     }
 }
 
 void onOcmSpectrumPowerNotify(
-        _In_ lai_object_id_t linecard_id,
-        _In_ lai_object_id_t ocm_id,
-        _In_ lai_spectrum_power_t ocm_result)
+        _In_ otai_object_id_t linecard_id,
+        _In_ otai_object_id_t ocm_id,
+        _In_ otai_spectrum_power_t ocm_result)
 {
     SWSS_LOG_ENTER();
 
     DBConnector appl_db("APPL_DB", 0);
     DBConnector counters_db("COUNTERS_DB", 0);
 
-    NotificationProducer notify(&appl_db, OCM_REPLY);
+    NotificationProducer notify(&appl_db, OT_OCM_REPLY);
 
-    std::string strVid = lai_serialize_object_id(ocm_id);
+    std::string strVid = otai_serialize_object_id(ocm_id);
 
-    auto key = counters_db.hget(COUNTERS_OCM_NAME_MAP, strVid);
+    auto key = counters_db.hget(COUNTERS_OT_OCM_NAME_MAP, strVid);
     if (key == nullptr)
     {
         return;
@@ -93,9 +93,9 @@ void onOcmSpectrumPowerNotify(
 }
 
 void onOtdrResultNotify(
-        _In_ lai_object_id_t linecard_id,
-        _In_ lai_object_id_t otdr_id,
-        _In_ lai_otdr_result_t otdr_result)
+        _In_ otai_object_id_t linecard_id,
+        _In_ otai_object_id_t otdr_id,
+        _In_ otai_otdr_result_t otdr_result)
 {
     SWSS_LOG_ENTER();
 }
