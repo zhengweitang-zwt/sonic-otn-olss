@@ -1,2 +1,2 @@
-SUBDIRS = configsyncd orchagent swssconfig cfgmgr appl
+SUBDIRS = configsyncd orchagent cfgmgr appl
 
