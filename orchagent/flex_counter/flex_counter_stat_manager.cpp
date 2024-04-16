@@ -3,7 +3,7 @@
 #include "schema.h"
 #include "rediscommand.h"
 #include "logger.h"
-#include "lai_serialize.h"
+#include "otai_serialize.h"
 
 using std::string;
 using std::unordered_map;
@@ -27,7 +27,7 @@ FlexCounterStatManager::~FlexCounterStatManager()
 
 // addFlexCounterStat will add a new stat for the given object to poll.
 void FlexCounterStatManager::addFlexCounterStat(
-        const lai_object_id_t object_id,
+        const otai_object_id_t object_id,
         const CounterType counter_type,
         const string& counter_stat)
 {
@@ -52,13 +52,13 @@ void FlexCounterStatManager::addFlexCounterStat(
 
     FlexCounterManager::setCounterIdList(object_id, counter_type, counter_stats->second);
 
-    SWSS_LOG_DEBUG("Added flex stat '%s' to object '%s'", counter_stat.c_str(), lai_serialize_object_id(object_id).c_str());
+    SWSS_LOG_DEBUG("Added flex stat '%s' to object '%s'", counter_stat.c_str(), otai_serialize_object_id(object_id).c_str());
 }
 
 // removeFlexCounterStat will remove a stat from the set of stats the given
 // object are polling.
 void FlexCounterStatManager::removeFlexCounterStat(
-        const lai_object_id_t object_id,
+        const otai_object_id_t object_id,
         const CounterType counter_type,
         const string& counter_stat)
 {
@@ -68,7 +68,7 @@ void FlexCounterStatManager::removeFlexCounterStat(
     if (counter_stats == object_stats.end())
     {
         SWSS_LOG_WARN("Could not find flex stat '%s' on object '%s'",
-                counter_stat.c_str(), lai_serialize_object_id(object_id).c_str());
+                counter_stat.c_str(), otai_serialize_object_id(object_id).c_str());
         return;
     }
 
@@ -82,7 +82,7 @@ void FlexCounterStatManager::removeFlexCounterStat(
         FlexCounterManager::clearCounterIdList(object_id);
 
         SWSS_LOG_DEBUG("Flex stat is empty, removing flex counter from object '%s'",
-                lai_serialize_object_id(object_id).c_str());
+                otai_serialize_object_id(object_id).c_str());
         return;
     }
 
@@ -90,6 +90,6 @@ void FlexCounterStatManager::removeFlexCounterStat(
 
     SWSS_LOG_DEBUG("Removing flex stat '%s' from object '%s'",
             counter_stat.c_str(),
-            lai_serialize_object_id(object_id).c_str());
+            otai_serialize_object_id(object_id).c_str());
 }
 

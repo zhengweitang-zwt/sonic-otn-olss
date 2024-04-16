@@ -81,33 +81,33 @@ bool cmd_set(int argc, char **argv)
 
     if (table == "APS")
     {
-        query_channel = APS_NOTIFICATION;
-        reply_channel = APS_REPLY;
+        query_channel = OT_APS_NOTIFICATION;
+        reply_channel = OT_APS_REPLY;
     }
     else if (table == "ETHERNET")
     {
-        query_channel = ETHERNET_NOTIFICATION;
-        reply_channel = ETHERNET_REPLY;
+        query_channel = OT_ETHERNET_NOTIFICATION;
+        reply_channel = OT_ETHERNET_REPLY;
     }
     else if (table == "TRANSCEIVER")
     {
-        query_channel = TRANSCEIVER_NOTIFICATION;
-        reply_channel = TRANSCEIVER_REPLY;
+        query_channel = OT_TRANSCEIVER_NOTIFICATION;
+        reply_channel = OT_TRANSCEIVER_REPLY;
     }
     else if (table == "PORT")
     {
-        query_channel = PORT_NOTIFICATION;
-        reply_channel = PORT_REPLY;
+        query_channel = OT_PORT_NOTIFICATION;
+        reply_channel = OT_PORT_REPLY;
     }
     else if (table == "LINECARD")
     {
-        query_channel = LINECARD_NOTIFICATION;
-        reply_channel = LINECARD_REPLY;
+        query_channel = OT_LINECARD_NOTIFICATION;
+        reply_channel = OT_LINECARD_REPLY;
     }
     else if (table == "OTDR")
     {
-        query_channel = OTDR_NOTIFICATION;
-        reply_channel = OTDR_REPLY;
+        query_channel = OT_OTDR_NOTIFICATION;
+        reply_channel = OT_OTDR_REPLY;
     }
     else
     {
@@ -180,8 +180,8 @@ bool cmd_get(int argc, char **argv)
 
     if (table == "LINECARD")
     {
-        query_channel = LINECARD_NOTIFICATION;
-        reply_channel = LINECARD_REPLY;
+        query_channel = OT_LINECARD_NOTIFICATION;
+        reply_channel = OT_LINECARD_REPLY;
     }
     else
     {

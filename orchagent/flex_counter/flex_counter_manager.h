@@ -9,7 +9,7 @@
 #include <inttypes.h>
 
 extern "C" {
-#include "lai.h"
+#include "otai.h"
 }
 
 enum class StatsMode
@@ -101,10 +101,10 @@ public:
     void disableFlexCounterGroup();
 
     void setCounterIdList(
-        const lai_object_id_t object_id,
+        const otai_object_id_t object_id,
         const CounterType counter_type,
         const std::unordered_set<std::string>& counter_stats);
-    void clearCounterIdList(const lai_object_id_t object_id);
+    void clearCounterIdList(const otai_object_id_t object_id);
 
 protected:
     void applyGroupConfiguration();
@@ -112,7 +112,7 @@ protected:
 private:
     std::string getFlexCounterTableKey(
         const std::string& group_name,
-        const lai_object_id_t object_id) const;
+        const otai_object_id_t object_id) const;
     std::string serializeCounterStats(
         const std::unordered_set<std::string>& counter_stats) const;
 
@@ -120,7 +120,7 @@ private:
     StatsMode stats_mode;
     uint polling_interval;
     bool enabled;
-    std::unordered_set<lai_object_id_t> installed_counters;
+    std::unordered_set<otai_object_id_t> installed_counters;
 
     std::shared_ptr<swss::DBConnector> flex_counter_db = nullptr;
     std::shared_ptr<swss::ProducerTable> flex_counter_group_table = nullptr;

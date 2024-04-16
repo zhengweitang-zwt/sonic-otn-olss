@@ -71,21 +71,21 @@ int main(int argc, char **argv)
         }
     }
 
-    g_apsportSync = new ConfigSync("apsportsync", CFG_APSPORT_TABLE_NAME, APP_APSPORT_TABLE_NAME);
-    g_apsSync = new ConfigSync("apssync", CFG_APS_TABLE_NAME, APP_APS_TABLE_NAME);
-    g_assignmentSync = new ConfigSync("assignmentsync", CFG_ASSIGNMENT_TABLE_NAME, APP_ASSIGNMENT_TABLE_NAME);
-    g_attenuatorSync = new ConfigSync("attenuatorsync", CFG_ATTENUATOR_TABLE_NAME, APP_ATTENUATOR_TABLE_NAME);
-    g_ethernetSync = new ConfigSync("ethernetsync", CFG_ETHERNET_TABLE_NAME, APP_ETHERNET_TABLE_NAME);
-    g_interfaceSync = new ConfigSync("interfacesync", CFG_INTERFACE_TABLE_NAME, APP_INTERFACE_TABLE_NAME);
-    g_lldpSync = new ConfigSync("lldpsync", CFG_LLDP_TABLE_NAME, APP_LLDP_TABLE_NAME);
-    g_logicalchannelSync = new ConfigSync("logicalchannelsync", CFG_LOGICALCHANNEL_TABLE_NAME, APP_LOGICALCHANNEL_TABLE_NAME);
-    g_oaSync = new ConfigSync("oasync", CFG_OA_TABLE_NAME, APP_OA_TABLE_NAME);
-    g_ochSync = new ConfigSync("ochsync", CFG_OCH_TABLE_NAME, APP_OCH_TABLE_NAME);
-    g_oscSync = new ConfigSync("oscsync", CFG_OSC_TABLE_NAME, APP_OSC_TABLE_NAME);
-    g_otnSync = new ConfigSync("otnsync", CFG_OTN_TABLE_NAME, APP_OTN_TABLE_NAME);
-    g_physicalchannelSync = new ConfigSync("physicalchannelsync", CFG_PHYSICALCHANNEL_TABLE_NAME, APP_PHYSICALCHANNEL_TABLE_NAME);
-    g_portSync = new ConfigSync("portsync", CFG_PORT_TABLE_NAME, APP_PORT_TABLE_NAME);
-    g_transceiverSync = new ConfigSync("transceiversync", CFG_TRANSCEIVER_TABLE_NAME, APP_TRANSCEIVER_TABLE_NAME);
+    g_apsportSync = new ConfigSync("apsportsync", CFG_OT_APSPORT_TABLE_NAME, APP_OT_APSPORT_TABLE_NAME);
+    g_apsSync = new ConfigSync("apssync", CFG_OT_APS_TABLE_NAME, APP_OT_APS_TABLE_NAME);
+    g_assignmentSync = new ConfigSync("assignmentsync", CFG_OT_ASSIGNMENT_TABLE_NAME, APP_OT_ASSIGNMENT_TABLE_NAME);
+    g_attenuatorSync = new ConfigSync("attenuatorsync", CFG_OT_ATTENUATOR_TABLE_NAME, APP_OT_ATTENUATOR_TABLE_NAME);
+    g_ethernetSync = new ConfigSync("ethernetsync", CFG_OT_ETHERNET_TABLE_NAME, APP_OT_ETHERNET_TABLE_NAME);
+    g_interfaceSync = new ConfigSync("interfacesync", CFG_OT_INTERFACE_TABLE_NAME, APP_OT_INTERFACE_TABLE_NAME);
+    g_lldpSync = new ConfigSync("lldpsync", CFG_OT_LLDP_TABLE_NAME, APP_OT_LLDP_TABLE_NAME);
+    g_logicalchannelSync = new ConfigSync("logicalchannelsync", CFG_OT_LOGICALCHANNEL_TABLE_NAME, APP_OT_LOGICALCHANNEL_TABLE_NAME);
+    g_oaSync = new ConfigSync("oasync", CFG_OT_OA_TABLE_NAME, APP_OT_OA_TABLE_NAME);
+    g_ochSync = new ConfigSync("ochsync", CFG_OT_OCH_TABLE_NAME, APP_OT_OCH_TABLE_NAME);
+    g_oscSync = new ConfigSync("oscsync", CFG_OT_OSC_TABLE_NAME, APP_OT_OSC_TABLE_NAME);
+    g_otnSync = new ConfigSync("otnsync", CFG_OT_OTN_TABLE_NAME, APP_OT_OTN_TABLE_NAME);
+    g_physicalchannelSync = new ConfigSync("physicalchannelsync", CFG_OT_PHYSICALCHANNEL_TABLE_NAME, APP_OT_PHYSICALCHANNEL_TABLE_NAME);
+    g_portSync = new ConfigSync("portsync", CFG_OT_PORT_TABLE_NAME, APP_OT_PORT_TABLE_NAME);
+    g_transceiverSync = new ConfigSync("transceiversync", CFG_OT_TRANSCEIVER_TABLE_NAME, APP_OT_TRANSCEIVER_TABLE_NAME);
     g_ocmSync = new OcmConfigSync();
     g_otdrSync = new OtdrConfigSync();
 
@@ -132,8 +132,8 @@ int main(int argc, char **argv)
         }
 
         DBConnector appl_db("APPL_DB", 0);
-        Table linecard_table(&appl_db, APP_LINECARD_TABLE_NAME);
-        ProducerStateTable linecard_pst(&appl_db, APP_LINECARD_TABLE_NAME);
+        Table linecard_table(&appl_db, APP_OT_LINECARD_TABLE_NAME);
+        ProducerStateTable linecard_pst(&appl_db, APP_OT_LINECARD_TABLE_NAME);
         vector<FieldValueTuple> attrs;
         attrs.push_back(FieldValueTuple("object-count", to_string(objects.size())));
 

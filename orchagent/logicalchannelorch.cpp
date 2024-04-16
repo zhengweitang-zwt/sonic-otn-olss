@@ -24,19 +24,19 @@ extern FlexCounterOrch *gFlexCounterOrch;
 extern std::unordered_set<std::string> logicalch_counter_ids_status;
 extern std::unordered_set<std::string> logicalch_counter_ids_counter;
 
-vector<lai_attr_id_t> g_logicalchannel_cfg_attrs =
+vector<otai_attr_id_t> g_logicalchannel_cfg_attrs =
 {
-    LAI_LOGICALCHANNEL_ATTR_CHANNEL_ID,
-    LAI_LOGICALCHANNEL_ATTR_ADMIN_STATE,
-    LAI_LOGICALCHANNEL_ATTR_LOOPBACK_MODE,
-    LAI_LOGICALCHANNEL_ATTR_TEST_SIGNAL_PATTERN,
-    LAI_LOGICALCHANNEL_ATTR_TX_TEST_SIGNAL_PATTERN,
-    LAI_LOGICALCHANNEL_ATTR_RX_TEST_SIGNAL_PATTERN,
-    LAI_LOGICALCHANNEL_ATTR_LINK_DOWN_DELAY_MODE,
-    LAI_LOGICALCHANNEL_ATTR_LINK_DOWN_DELAY_HOLD_OFF,
-    LAI_LOGICALCHANNEL_ATTR_LINK_UP_DELAY_MODE,
-    LAI_LOGICALCHANNEL_ATTR_LINK_UP_DELAY_HOLD_OFF,
-    LAI_LOGICALCHANNEL_ATTR_LINK_UP_DELAY_ACTIVE_THRESHOLD,
+    OTAI_LOGICALCHANNEL_ATTR_CHANNEL_ID,
+    OTAI_LOGICALCHANNEL_ATTR_ADMIN_STATE,
+    OTAI_LOGICALCHANNEL_ATTR_LOOPBACK_MODE,
+    OTAI_LOGICALCHANNEL_ATTR_TEST_SIGNAL_PATTERN,
+    OTAI_LOGICALCHANNEL_ATTR_TX_TEST_SIGNAL_PATTERN,
+    OTAI_LOGICALCHANNEL_ATTR_RX_TEST_SIGNAL_PATTERN,
+    OTAI_LOGICALCHANNEL_ATTR_LINK_DOWN_DELAY_MODE,
+    OTAI_LOGICALCHANNEL_ATTR_LINK_DOWN_DELAY_HOLD_OFF,
+    OTAI_LOGICALCHANNEL_ATTR_LINK_UP_DELAY_MODE,
+    OTAI_LOGICALCHANNEL_ATTR_LINK_UP_DELAY_HOLD_OFF,
+    OTAI_LOGICALCHANNEL_ATTR_LINK_UP_DELAY_ACTIVE_THRESHOLD,
 };
 
 vector<string> g_lch_auxiliary_fields =
@@ -47,30 +47,30 @@ vector<string> g_lch_auxiliary_fields =
 };
 
 LogicalChannelOrch::LogicalChannelOrch(DBConnector *db, std::vector<TableConnector>& connectors)
-    : LaiObjectOrch(db, connectors, LAI_OBJECT_TYPE_LOGICALCHANNEL, g_logicalchannel_cfg_attrs, g_lch_auxiliary_fields)
+    : LaiObjectOrch(db, connectors, OTAI_OBJECT_TYPE_LOGICALCHANNEL, g_logicalchannel_cfg_attrs, g_lch_auxiliary_fields)
 {
-    m_stateTable = unique_ptr<Table>(new Table(m_stateDb.get(), STATE_LOGICALCHANNEL_TABLE_NAME));
-    m_countersTable = COUNTERS_LOGICALCHANNEL_TABLE_NAME;
-    m_nameMapTable = unique_ptr<Table>(new Table(m_countersDb.get(), COUNTERS_LOGICALCHANNEL_NAME_MAP));
+    m_stateTable = unique_ptr<Table>(new Table(m_stateDb.get(), STATE_OT_LOGICALCHANNEL_TABLE_NAME));
+    m_countersTable = COUNTERS_OT_LOGICALCHANNEL_TABLE_NAME;
+    m_nameMapTable = unique_ptr<Table>(new Table(m_countersDb.get(), COUNTERS_OT_LOGICALCHANNEL_NAME_MAP));
 
-    m_notificationConsumer = new NotificationConsumer(db, LOGICALCHANNEL_NOTIFICATION);
-    auto notifier = new Notifier(m_notificationConsumer, this, LOGICALCHANNEL_NOTIFICATION);
+    m_notificationConsumer = new NotificationConsumer(db, OT_LOGICALCHANNEL_NOTIFICATION);
+    auto notifier = new Notifier(m_notificationConsumer, this, OT_LOGICALCHANNEL_NOTIFICATION);
     Orch::addExecutor(notifier);
-    m_notificationProducer = new NotificationProducer(db, LOGICALCHANNEL_REPLY);
+    m_notificationProducer = new NotificationProducer(db, OT_LOGICALCHANNEL_REPLY);
 
-    m_createFunc = lai_logicalchannel_api->create_logicalchannel;
-    m_removeFunc = lai_logicalchannel_api->remove_logicalchannel;
-    m_setFunc = lai_logicalchannel_api->set_logicalchannel_attribute;
-    m_getFunc = lai_logicalchannel_api->get_logicalchannel_attribute;
+    m_createFunc = otai_logicalchannel_api->create_logicalchannel;
+    m_removeFunc = otai_logicalchannel_api->remove_logicalchannel;
+    m_setFunc = otai_logicalchannel_api->set_logicalchannel_attribute;
+    m_getFunc = otai_logicalchannel_api->get_logicalchannel_attribute;
 }
 
-void LogicalChannelOrch::setFlexCounter(lai_object_id_t id, vector<lai_attribute_t> &attrs)
+void LogicalChannelOrch::setFlexCounter(otai_object_id_t id, vector<otai_attribute_t> &attrs)
 {    
     gFlexCounterOrch->getCounterGroup()->setCounterIdList(id, CounterType::LOGICALCH_COUNTER, logicalch_counter_ids_counter);        
     gFlexCounterOrch->getStatusGroup()->setCounterIdList(id, CounterType::LOGICALCH_STATUS, logicalch_counter_ids_status);
 }
 
-void LogicalChannelOrch::clearFlexCounter(lai_object_id_t id, string key)
+void LogicalChannelOrch::clearFlexCounter(otai_object_id_t id, string key)
 {
     gFlexCounterOrch->getCounterGroup()->clearCounterIdList(id);
     gFlexCounterOrch->getStatusGroup()->clearCounterIdList(id);

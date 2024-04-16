@@ -25,13 +25,13 @@ extern FlexCounterOrch *gFlexCounterOrch;
 extern std::unordered_set<std::string> attenuator_counter_ids_status;
 extern std::unordered_set<std::string> attenuator_counter_ids_gauge;
 
-vector<lai_attr_id_t> g_attenuator_cfg_attrs =
+vector<otai_attr_id_t> g_attenuator_cfg_attrs =
 {
-    LAI_ATTENUATOR_ATTR_ID,
-    LAI_ATTENUATOR_ATTR_ATTENUATION_MODE,
-    LAI_ATTENUATOR_ATTR_TARGET_OUTPUT_POWER,
-    LAI_ATTENUATOR_ATTR_ATTENUATION,
-    LAI_ATTENUATOR_ATTR_ENABLED,
+    OTAI_ATTENUATOR_ATTR_ID,
+    OTAI_ATTENUATOR_ATTR_ATTENUATION_MODE,
+    OTAI_ATTENUATOR_ATTR_TARGET_OUTPUT_POWER,
+    OTAI_ATTENUATOR_ATTR_ATTENUATION,
+    OTAI_ATTENUATOR_ATTR_ENABLED,
 };
 
 vector<string> g_attenuator_auxiliary_fields =
@@ -41,24 +41,24 @@ vector<string> g_attenuator_auxiliary_fields =
 };
 
 AttenuatorOrch::AttenuatorOrch(DBConnector *db, const vector<string> &table_names)
-    : LaiObjectOrch(db, table_names, LAI_OBJECT_TYPE_ATTENUATOR, g_attenuator_cfg_attrs, g_attenuator_auxiliary_fields)
+    : LaiObjectOrch(db, table_names, OTAI_OBJECT_TYPE_ATTENUATOR, g_attenuator_cfg_attrs, g_attenuator_auxiliary_fields)
 {
-    m_stateTable = unique_ptr<Table>(new Table(m_stateDb.get(), STATE_ATTENUATOR_TABLE_NAME));
-    m_countersTable = COUNTERS_ATTENUATOR_TABLE_NAME;
-    m_nameMapTable = unique_ptr<Table>(new Table(m_countersDb.get(), COUNTERS_ATTENUATOR_NAME_MAP));
+    m_stateTable = unique_ptr<Table>(new Table(m_stateDb.get(), STATE_OT_ATTENUATOR_TABLE_NAME));
+    m_countersTable = COUNTERS_OT_ATTENUATOR_TABLE_NAME;
+    m_nameMapTable = unique_ptr<Table>(new Table(m_countersDb.get(), COUNTERS_OT_ATTENUATOR_NAME_MAP));
 
-    m_notificationConsumer = new NotificationConsumer(db, ATTENUATOR_NOTIFICATION);
-    auto notifier = new Notifier(m_notificationConsumer, this, ATTENUATOR_NOTIFICATION);
+    m_notificationConsumer = new NotificationConsumer(db, OT_ATTENUATOR_NOTIFICATION);
+    auto notifier = new Notifier(m_notificationConsumer, this, OT_ATTENUATOR_NOTIFICATION);
     Orch::addExecutor(notifier);
-    m_notificationProducer = new NotificationProducer(db, ATTENUATOR_REPLY);
+    m_notificationProducer = new NotificationProducer(db, OT_ATTENUATOR_REPLY);
 
-    m_createFunc = lai_attenuator_api->create_attenuator;
-    m_removeFunc = lai_attenuator_api->remove_attenuator;
-    m_setFunc = lai_attenuator_api->set_attenuator_attribute;
-    m_getFunc = lai_attenuator_api->get_attenuator_attribute;
+    m_createFunc = otai_attenuator_api->create_attenuator;
+    m_removeFunc = otai_attenuator_api->remove_attenuator;
+    m_setFunc = otai_attenuator_api->set_attenuator_attribute;
+    m_getFunc = otai_attenuator_api->get_attenuator_attribute;
 }
 
-void AttenuatorOrch::setFlexCounter(lai_object_id_t id, vector<lai_attribute_t> &attrs)
+void AttenuatorOrch::setFlexCounter(otai_object_id_t id, vector<otai_attribute_t> &attrs)
 {
     gFlexCounterOrch->getStatusGroup()->setCounterIdList(id, CounterType::ATTENUATOR_STATUS, attenuator_counter_ids_status);
     gFlexCounterOrch->getGaugeGroup()->setCounterIdList(id, CounterType::ATTENUATOR_GAUGE, attenuator_counter_ids_gauge);

@@ -19,7 +19,7 @@
 
 #include "portorch.h"
 #include "flexcounterorch.h"
-#include "lai_serialize.h"
+#include "otai_serialize.h"
 #include "notifier.h"
 #include "notificationproducer.h"
 #include "notifications.h"
@@ -32,19 +32,19 @@ extern std::unordered_set<std::string> port_counter_ids_gauge;
 extern std::unordered_set<std::string> inport_counter_ids_gauge;
 extern std::unordered_set<std::string> outport_counter_ids_gauge;
 
-vector<lai_attr_id_t> g_port_cfg_attrs =
+vector<otai_attr_id_t> g_port_cfg_attrs =
 {
-    LAI_PORT_ATTR_PORT_TYPE,
-    LAI_PORT_ATTR_PORT_ID,
-    LAI_PORT_ATTR_ADMIN_STATE,
-    LAI_PORT_ATTR_RX_CD_RANGE,
-    LAI_PORT_ATTR_ROLL_OFF,
+    OTAI_PORT_ATTR_PORT_TYPE,
+    OTAI_PORT_ATTR_PORT_ID,
+    OTAI_PORT_ATTR_ADMIN_STATE,
+    OTAI_PORT_ATTR_RX_CD_RANGE,
+    OTAI_PORT_ATTR_ROLL_OFF,
     /* For optical-lay card */
-    LAI_PORT_ATTR_LOS_THRESHOLD,
-    LAI_PORT_ATTR_LOW_THRESHOLD,
-    LAI_PORT_ATTR_HIGH_THRESHOLD,
-    LAI_PORT_ATTR_LED_MODE,
-    LAI_PORT_ATTR_LED_FLASH_INTERVAL,
+    OTAI_PORT_ATTR_LOS_THRESHOLD,
+    OTAI_PORT_ATTR_LOW_THRESHOLD,
+    OTAI_PORT_ATTR_HIGH_THRESHOLD,
+    OTAI_PORT_ATTR_LED_MODE,
+    OTAI_PORT_ATTR_LED_FLASH_INTERVAL,
 };
 
 vector<string> g_port_auxiliary_fields =
@@ -55,54 +55,54 @@ vector<string> g_port_auxiliary_fields =
 };
 
 PortOrch::PortOrch(DBConnector* db, const vector<string>& table_names)
-    : LaiObjectOrch(db, table_names, LAI_OBJECT_TYPE_PORT, g_port_cfg_attrs, g_port_auxiliary_fields)
+    : LaiObjectOrch(db, table_names, OTAI_OBJECT_TYPE_PORT, g_port_cfg_attrs, g_port_auxiliary_fields)
 {
-    m_stateTable = unique_ptr<Table>(new Table(m_stateDb.get(), STATE_PORT_TABLE_NAME));
-    m_countersTable = COUNTERS_PORT_TABLE_NAME;
-    m_nameMapTable = unique_ptr<Table>(new Table(m_countersDb.get(), COUNTERS_PORT_NAME_MAP));
+    m_stateTable = unique_ptr<Table>(new Table(m_stateDb.get(), STATE_OT_PORT_TABLE_NAME));
+    m_countersTable = COUNTERS_OT_PORT_TABLE_NAME;
+    m_nameMapTable = unique_ptr<Table>(new Table(m_countersDb.get(), COUNTERS_OT_PORT_NAME_MAP));
 
-    m_notificationConsumer = new NotificationConsumer(db, PORT_NOTIFICATION);
-    auto notifier = new Notifier(m_notificationConsumer, this, PORT_NOTIFICATION);
+    m_notificationConsumer = new NotificationConsumer(db, OT_PORT_NOTIFICATION);
+    auto notifier = new Notifier(m_notificationConsumer, this, OT_PORT_NOTIFICATION);
     Orch::addExecutor(notifier);
-    m_notificationProducer = new NotificationProducer(db, PORT_REPLY);
+    m_notificationProducer = new NotificationProducer(db, OT_PORT_REPLY);
 
-    m_createFunc = lai_port_api->create_port;
-    m_removeFunc = lai_port_api->remove_port;
-    m_setFunc = lai_port_api->set_port_attribute;
-    m_getFunc = lai_port_api->get_port_attribute;
+    m_createFunc = otai_port_api->create_port;
+    m_removeFunc = otai_port_api->remove_port;
+    m_setFunc = otai_port_api->set_port_attribute;
+    m_getFunc = otai_port_api->get_port_attribute;
 }
 
-void PortOrch::setFlexCounter(lai_object_id_t id, vector<lai_attribute_t> &attrs)
+void PortOrch::setFlexCounter(otai_object_id_t id, vector<otai_attribute_t> &attrs)
 {
-    lai_port_type_t port_type = LAI_PORT_TYPE_INVALID;
+    otai_port_type_t port_type = OTAI_PORT_TYPE_INVALID;
 
     for (auto attr : attrs)
     {
-         if (attr.id == LAI_PORT_ATTR_PORT_TYPE)
+         if (attr.id == OTAI_PORT_ATTR_PORT_TYPE)
          {
-             port_type = (lai_port_type_t)attr.value.s32;
+             port_type = (otai_port_type_t)attr.value.s32;
          }
     }
     switch (port_type)
     {
-    case LAI_PORT_TYPE_LINE_IN:
-    case LAI_PORT_TYPE_CLIENT_IN:
-    case LAI_PORT_TYPE_EDFA_IN:
-    case LAI_PORT_TYPE_MD_IN:
-    case LAI_PORT_TYPE_MD_EXP_IN:
-    case LAI_PORT_TYPE_OLP_PRI_IN:
-    case LAI_PORT_TYPE_OLP_SEC_IN:
-    case LAI_PORT_TYPE_OLP_COM_IN:
+    case OTAI_PORT_TYPE_LINE_IN:
+    case OTAI_PORT_TYPE_CLIENT_IN:
+    case OTAI_PORT_TYPE_EDFA_IN:
+    case OTAI_PORT_TYPE_MD_IN:
+    case OTAI_PORT_TYPE_MD_EXP_IN:
+    case OTAI_PORT_TYPE_OLP_PRI_IN:
+    case OTAI_PORT_TYPE_OLP_SEC_IN:
+    case OTAI_PORT_TYPE_OLP_COM_IN:
         gFlexCounterOrch->getGaugeGroup()->setCounterIdList(id, CounterType::INPORT_GAUGE, inport_counter_ids_gauge);
         break;
-    case LAI_PORT_TYPE_LINE_OUT:
-    case LAI_PORT_TYPE_CLIENT_OUT:
-    case LAI_PORT_TYPE_EDFA_OUT:
-    case LAI_PORT_TYPE_MD_OUT:
-    case LAI_PORT_TYPE_MD_EXP_OUT:
-    case LAI_PORT_TYPE_OLP_PRI_OUT:
-    case LAI_PORT_TYPE_OLP_SEC_OUT:
-    case LAI_PORT_TYPE_OLP_COM_OUT:
+    case OTAI_PORT_TYPE_LINE_OUT:
+    case OTAI_PORT_TYPE_CLIENT_OUT:
+    case OTAI_PORT_TYPE_EDFA_OUT:
+    case OTAI_PORT_TYPE_MD_OUT:
+    case OTAI_PORT_TYPE_MD_EXP_OUT:
+    case OTAI_PORT_TYPE_OLP_PRI_OUT:
+    case OTAI_PORT_TYPE_OLP_SEC_OUT:
+    case OTAI_PORT_TYPE_OLP_COM_OUT:
         gFlexCounterOrch->getGaugeGroup()->setCounterIdList(id, CounterType::OUTPORT_GAUGE, outport_counter_ids_gauge);
         break;
     default:

@@ -36,11 +36,11 @@ OcmGroupMgr::OcmGroupMgr(string groupName):
         m_cfgDb("CONFIG_DB", 0),
         m_applDb("APPL_DB", 0),
         m_stateDb("STATE_DB", 0),
-        m_cfgOcmGroupTable(&m_cfgDb, CFG_OCM_GROUP_TABLE_NAME),
-        m_stateTable(&m_stateDb, STATE_OCM_TABLE_NAME),
-        m_appTable(&m_applDb, APP_OCM_TABLE_NAME),
-        m_queryChannel(&m_applDb, OCM_NOTIFICATION),
-        m_replyChannel(&m_applDb, OCM_REPLY)
+        m_cfgOcmGroupTable(&m_cfgDb, CFG_OT_OCM_GROUP_TABLE_NAME),
+        m_stateTable(&m_stateDb, STATE_OT_OCM_TABLE_NAME),
+        m_appTable(&m_applDb, APP_OT_OCM_TABLE_NAME),
+        m_queryChannel(&m_applDb, OT_OCM_NOTIFICATION),
+        m_replyChannel(&m_applDb, OT_OCM_REPLY)
 {
     SWSS_LOG_ENTER();
 
@@ -319,9 +319,9 @@ void OcmGroupMgr::handleConfig(KeyOpFieldsValuesTuple &entry)
 }
 
 OcmConfigSync::OcmConfigSync():
-        ConfigSync("ocmsync", CFG_OCM_TABLE_NAME, APP_OCM_TABLE_NAME),
-        m_cfgOcmGroupTable(&m_cfg_db, CFG_OCM_GROUP_TABLE_NAME),
-        m_cfgOcmGroupSubStateTable(&m_cfg_db, CFG_OCM_GROUP_TABLE_NAME)
+        ConfigSync("ocmsync", CFG_OT_OCM_TABLE_NAME, APP_OT_OCM_TABLE_NAME),
+        m_cfgOcmGroupTable(&m_cfg_db, CFG_OT_OCM_GROUP_TABLE_NAME),
+        m_cfgOcmGroupSubStateTable(&m_cfg_db, CFG_OT_OCM_GROUP_TABLE_NAME)
 {
     SWSS_LOG_ENTER();
 }

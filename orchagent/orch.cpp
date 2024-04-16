@@ -371,7 +371,7 @@ ref_resolve_status Orch::resolveFieldRefValue(
     type_map &type_maps,
     const string &field_name,
     KeyOpFieldsValuesTuple &tuple,
-    lai_object_id_t &lai_object,
+    otai_object_id_t &otai_object,
     string &referenced_object_name)
 {
     SWSS_LOG_ENTER();
@@ -396,7 +396,7 @@ ref_resolve_status Orch::resolveFieldRefValue(
             {
                 return ref_resolve_status::empty;
             }
-            lai_object = (*(type_maps[ref_type_name]))[object_name].m_laiObjectId;
+            otai_object = (*(type_maps[ref_type_name]))[object_name].m_otaiObjectId;
             referenced_object_name = ref_type_name + delimiter + object_name;
             hit = true;
         }
@@ -569,13 +569,13 @@ ref_resolve_status Orch::resolveFieldRefArray(
     type_map &type_maps,
     const string &field_name,
     KeyOpFieldsValuesTuple &tuple,
-    vector<lai_object_id_t> &lai_object_arr,
+    vector<otai_object_id_t> &otai_object_arr,
     string &object_name_list)
 {
     // example: [BUFFER_PROFILE_TABLE:e_port.profile0],[BUFFER_PROFILE_TABLE:e_port.profile1]
     SWSS_LOG_ENTER();
     size_t count = 0;
-    lai_object_arr.clear();
+    otai_object_arr.clear();
     for (auto i = kfvFieldsValues(tuple).begin(); i != kfvFieldsValues(tuple).end(); i++)
     {
         if (fvField(*i) == field_name)
@@ -603,9 +603,9 @@ ref_resolve_status Orch::resolveFieldRefArray(
                     SWSS_LOG_ERROR("Failed to parse profile reference:%s\n", list_items[ind].c_str());
                     return ref_resolve_status::not_resolved;
                 }
-                lai_object_id_t lai_obj = (*(type_maps[ref_type_name]))[object_name].m_laiObjectId;
-                SWSS_LOG_DEBUG("Resolved to lai_object:0x%" PRIx64 ", type:%s, name:%s", lai_obj, ref_type_name.c_str(), object_name.c_str());
-                lai_object_arr.push_back(lai_obj);
+                otai_object_id_t otai_obj = (*(type_maps[ref_type_name]))[object_name].m_otaiObjectId;
+                SWSS_LOG_DEBUG("Resolved to otai_object:0x%" PRIx64 ", type:%s, name:%s", otai_obj, ref_type_name.c_str(), object_name.c_str());
+                otai_object_arr.push_back(otai_obj);
                 if (!object_name_list.empty())
                     object_name_list += list_item_delimiter;
                 object_name_list += ref_type_name + delimiter + object_name;
@@ -621,7 +621,7 @@ ref_resolve_status Orch::resolveFieldRefArray(
     return ref_resolve_status::success;
 }
 
-bool Orch::parseIndexRange(const string &input, lai_uint32_t &range_low, lai_uint32_t &range_high)
+bool Orch::parseIndexRange(const string &input, otai_uint32_t &range_low, otai_uint32_t &range_high)
 {
     SWSS_LOG_ENTER();
     SWSS_LOG_DEBUG("input:%s", input.c_str());

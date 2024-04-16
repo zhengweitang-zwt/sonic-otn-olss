@@ -3,7 +3,7 @@
 #include "orch.h"
 #include "timer.h"
 #include "dbconnector.h"
-#include "laiobjectorch.h"
+#include "otaiobjectorch.h"
 
 class DiagOrch : public Orch
 {

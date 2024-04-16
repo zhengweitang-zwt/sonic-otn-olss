@@ -30,9 +30,9 @@ using namespace swss;
 
 LineCardMgr::LineCardMgr(DBConnector* cfgDb, DBConnector* appDb, DBConnector* stateDb, const vector<string>& tableNames) :
     Orch(cfgDb, tableNames),
-    m_cfgLineCardTable(cfgDb, CFG_LINECARD_TABLE_NAME),
-    m_stateLineCardTable(stateDb, STATE_LINECARD_TABLE_NAME),
-    m_appLineCardTable(appDb, APP_LINECARD_TABLE_NAME)
+    m_cfgLineCardTable(cfgDb, CFG_OT_LINECARD_TABLE_NAME),
+    m_stateLineCardTable(stateDb, STATE_OT_LINECARD_TABLE_NAME),
+    m_appLineCardTable(appDb, APP_OT_LINECARD_TABLE_NAME)
 {
 }
 
