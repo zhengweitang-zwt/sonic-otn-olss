@@ -5,7 +5,7 @@
 using namespace std;
 using namespace swss;
 
-class LogicalChannelOrch: public LaiObjectOrch
+class LogicalChannelOrch: public OtaiObjectOrch
 {
 public:
     LogicalChannelOrch(DBConnector *db, std::vector<TableConnector>& connectors);

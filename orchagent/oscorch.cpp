@@ -43,7 +43,7 @@ vector<string> g_osc_auxiliary_fields =
 };
 
 OscOrch::OscOrch(DBConnector *db, const vector<string> &table_names)
-    : LaiObjectOrch(db, table_names, OTAI_OBJECT_TYPE_OSC, g_osc_cfg_attrs, g_osc_auxiliary_fields)
+    : OtaiObjectOrch(db, table_names, OTAI_OBJECT_TYPE_OSC, g_osc_cfg_attrs, g_osc_auxiliary_fields)
 {
     m_stateTable = unique_ptr<Table>(new Table(m_stateDb.get(), STATE_OT_OSC_TABLE_NAME));
     m_countersTable = COUNTERS_OT_OSC_TABLE_NAME;

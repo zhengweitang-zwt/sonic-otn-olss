@@ -2,7 +2,7 @@
 
 #include "otaiobjectorch.h"
 
-class OtnOrch: public LaiObjectOrch
+class OtnOrch: public OtaiObjectOrch
 {
 public:
     OtnOrch(DBConnector *db, std::vector<TableConnector>& connectors);

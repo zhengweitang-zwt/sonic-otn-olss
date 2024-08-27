@@ -2,7 +2,7 @@
 
 #include "otaiobjectorch.h"
 
-class TransceiverOrch: public LaiObjectOrch
+class TransceiverOrch: public OtaiObjectOrch
 {
 public:
     TransceiverOrch(DBConnector *db, std::vector<TableConnector>& connectors);

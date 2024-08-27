@@ -40,7 +40,7 @@ vector<string> g_interface_auxiliary_fields =
 };
 
 InterfaceOrch::InterfaceOrch(DBConnector *db, std::vector<TableConnector>& connectors)
-    : LaiObjectOrch(db, connectors, OTAI_OBJECT_TYPE_INTERFACE, g_interface_cfg_attrs, g_interface_auxiliary_fields)
+    : OtaiObjectOrch(db, connectors, OTAI_OBJECT_TYPE_INTERFACE, g_interface_cfg_attrs, g_interface_auxiliary_fields)
 {
     m_stateTable = unique_ptr<Table>(new Table(m_stateDb.get(), STATE_OT_INTERFACE_TABLE_NAME));
     m_countersTable = COUNTERS_OT_INTERFACE_TABLE_NAME;

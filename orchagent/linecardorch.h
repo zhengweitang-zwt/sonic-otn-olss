@@ -13,7 +13,7 @@ struct WarmRestartCheck
     bool skipPendingTaskCheck;
 };
 
-class LinecardOrch : public LaiObjectOrch
+class LinecardOrch : public OtaiObjectOrch
 {
 public:
     LinecardOrch(swss::DBConnector* db, std::vector<TableConnector>& connectors);

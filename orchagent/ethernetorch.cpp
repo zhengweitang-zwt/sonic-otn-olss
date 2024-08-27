@@ -43,7 +43,7 @@ vector<string> g_ethernet_auxiliary_fields =
 };
 
 EthernetOrch::EthernetOrch(DBConnector *db, std::vector<TableConnector>& connectors)
-    : LaiObjectOrch(db, connectors, OTAI_OBJECT_TYPE_ETHERNET, g_ethernet_cfg_attrs, g_ethernet_auxiliary_fields)
+    : OtaiObjectOrch(db, connectors, OTAI_OBJECT_TYPE_ETHERNET, g_ethernet_cfg_attrs, g_ethernet_auxiliary_fields)
 {
     m_stateTable = unique_ptr<Table>(new Table(m_stateDb.get(), STATE_OT_ETHERNET_TABLE_NAME));
     m_countersTable = COUNTERS_OT_ETHERNET_TABLE_NAME;

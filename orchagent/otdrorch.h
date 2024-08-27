@@ -2,7 +2,7 @@
 
 #include "otaiobjectorch.h"
 
-class OtdrOrch: public LaiObjectOrch
+class OtdrOrch: public OtaiObjectOrch
 {
 public:
     OtdrOrch(DBConnector *db, const vector<string> &table_names);

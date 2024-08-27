@@ -21,5 +21,5 @@ extern otai_attenuator_api_t*            otai_attenuator_api;
 extern otai_ocm_api_t*                   otai_ocm_api;
 extern otai_otdr_api_t*                  otai_otdr_api;
 
-void initLaiApi();
-void initLaiRedis(const std::string &record_location, const std::string &record_filename);
+void initOtaiApi();
+void initOtaiRedis(const std::string &record_location, const std::string &record_filename);

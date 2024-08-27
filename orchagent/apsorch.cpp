@@ -52,7 +52,7 @@ vector<string> g_aps_auxiliary_fields =
 };
 
 ApsOrch::ApsOrch(DBConnector *db, const vector<string> &table_names)
-    : LaiObjectOrch(db, table_names, OTAI_OBJECT_TYPE_APS, g_aps_cfg_attrs, g_aps_auxiliary_fields)
+    : OtaiObjectOrch(db, table_names, OTAI_OBJECT_TYPE_APS, g_aps_cfg_attrs, g_aps_auxiliary_fields)
 {
     m_stateTable = unique_ptr<Table>(new Table(m_stateDb.get(), STATE_OT_APS_TABLE_NAME));
     m_countersTable = COUNTERS_OT_APS_TABLE_NAME;

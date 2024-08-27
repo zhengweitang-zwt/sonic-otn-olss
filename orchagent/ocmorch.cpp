@@ -42,7 +42,7 @@ vector<string> g_ocm_auxiliary_fields =
 };
 
 OcmOrch::OcmOrch(DBConnector *db, const vector<string> &table_names)
-    : LaiObjectOrch(db, table_names, OTAI_OBJECT_TYPE_OCM, g_ocm_cfg_attrs, g_ocm_auxiliary_fields)
+    : OtaiObjectOrch(db, table_names, OTAI_OBJECT_TYPE_OCM, g_ocm_cfg_attrs, g_ocm_auxiliary_fields)
 {
     SWSS_LOG_ENTER();
 
@@ -127,7 +127,7 @@ void OcmOrch::doTask(swss::NotificationConsumer &consumer)
             otai_attribute_t attr;
             attr.id = m_createandsetAttrs[field];
 
-            if (translateLaiObjectAttr(field, value, attr) == false)
+            if (translateOtaiObjectAttr(field, value, attr) == false)
             {
                 success = false;
                 break;

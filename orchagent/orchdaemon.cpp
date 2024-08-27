@@ -13,7 +13,7 @@ using namespace swss;
 
 extern otai_linecard_api_t* otai_linecard_api;
 extern otai_object_id_t             gLinecardId;
-extern bool                        gLaiRedisLogRotate;
+extern bool                        gOtaiRedisLogRotate;
 
 /*
  * Global orch daemon variables
@@ -247,11 +247,11 @@ void OrchDaemon::flush()
     }
 
     // check if logroate is requested
-    if (gLaiRedisLogRotate)
+    if (gOtaiRedisLogRotate)
     {
         SWSS_LOG_NOTICE("performing log rotate");
 
-        gLaiRedisLogRotate = false;
+        gOtaiRedisLogRotate = false;
 
         attr.id = OTAI_REDIS_LINECARD_ATTR_PERFORM_LOG_ROTATE;
         attr.value.booldata = true;

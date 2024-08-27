@@ -2,7 +2,7 @@
 
 #include "otaiobjectorch.h"
 
-class AttenuatorOrch: public LaiObjectOrch
+class AttenuatorOrch: public OtaiObjectOrch
 {
 public:
     AttenuatorOrch(DBConnector *db, const vector<string> &table_names);

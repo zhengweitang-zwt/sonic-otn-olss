@@ -42,7 +42,7 @@ vector<string> g_otn_auxiliary_fields =
 };
 
 OtnOrch::OtnOrch(DBConnector *db, std::vector<TableConnector>& connectors)
-    : LaiObjectOrch(db, connectors, OTAI_OBJECT_TYPE_OTN, g_otn_cfg_attrs, g_otn_auxiliary_fields)
+    : OtaiObjectOrch(db, connectors, OTAI_OBJECT_TYPE_OTN, g_otn_cfg_attrs, g_otn_auxiliary_fields)
 {
     m_stateTable = unique_ptr<Table>(new Table(m_stateDb.get(), STATE_OT_OTN_TABLE_NAME));
     m_countersTable = COUNTERS_OT_OTN_TABLE_NAME;

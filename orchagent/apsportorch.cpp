@@ -35,7 +35,7 @@ vector<otai_attr_id_t> g_apsport_cfg_attrs =
 };
 
 ApsportOrch::ApsportOrch(DBConnector *db, const vector<string> &table_names)
-    : LaiObjectOrch(db, table_names, OTAI_OBJECT_TYPE_APSPORT, g_apsport_cfg_attrs)
+    : OtaiObjectOrch(db, table_names, OTAI_OBJECT_TYPE_APSPORT, g_apsport_cfg_attrs)
 {
     m_stateTable = unique_ptr<Table>(new Table(m_stateDb.get(), STATE_OT_APSPORT_TABLE_NAME));
     m_countersTable = COUNTERS_OT_APSPORT_TABLE_NAME;

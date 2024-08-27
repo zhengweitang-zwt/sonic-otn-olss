@@ -53,7 +53,7 @@ otai_ocm_api_t*                   otai_ocm_api;
 otai_otdr_api_t*                  otai_otdr_api;
 
 extern otai_object_id_t gLinecardId;
-extern bool gLairedisRecord;
+extern bool gOtairedisRecord;
 extern bool gSwssRecord;
 extern ofstream gRecordOfs;
 extern string gRecordFile;
@@ -109,7 +109,7 @@ const otai_service_method_table_t test_services = {
     test_profile_get_next_value
 };
 
-void initLaiApi()
+void initOtaiApi()
 {
     SWSS_LOG_ENTER();
 
@@ -160,7 +160,7 @@ void initLaiApi()
     otai_log_set(OTAI_API_OTDR,                     OTAI_LOG_LEVEL_WARN);
 }
 
-void initLaiRedis(const string &record_location, const std::string &record_filename)
+void initOtaiRedis(const string &record_location, const std::string &record_filename)
 {
     /**
      * NOTE: Notice that all Redis attributes here are using OTAI_NULL_OBJECT_ID
@@ -173,7 +173,7 @@ void initLaiRedis(const string &record_location, const std::string &record_filen
 
     /* set recording dir before enable recording */
 
-    if (gLairedisRecord)
+    if (gOtairedisRecord)
     {
         attr.id = OTAI_REDIS_LINECARD_ATTR_RECORDING_OUTPUT_DIR;
         attr.value.s8list.count = (uint32_t)record_location.size();
@@ -204,13 +204,13 @@ void initLaiRedis(const string &record_location, const std::string &record_filen
     /* Disable/enable OTAI Redis recording */
 
     attr.id = OTAI_REDIS_LINECARD_ATTR_RECORD;
-    attr.value.booldata = gLairedisRecord;
+    attr.value.booldata = gOtairedisRecord;
 
     status = otai_linecard_api->set_linecard_attribute(gLinecardId, &attr);
     if (status != OTAI_STATUS_SUCCESS)
     {
         SWSS_LOG_ERROR("Failed to %s OTAI Redis recording, rv:%d",
-            gLairedisRecord ? "enable" : "disable", status);
+            gOtairedisRecord ? "enable" : "disable", status);
         exit(EXIT_FAILURE);
     }
 

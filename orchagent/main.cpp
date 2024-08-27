@@ -37,10 +37,10 @@ otai_object_id_t gLinecardId = OTAI_NULL_OBJECT_ID;
 #define DEFAULT_BATCH_SIZE  128
 int gBatchSize = DEFAULT_BATCH_SIZE;
 int gSlotId = 0;
-bool gLairedisRecord = true;
+bool gOtairedisRecord = true;
 bool gSwssRecord = true;
 bool gLogRotate = false;
-bool gLaiRedisLogRotate = false;
+bool gOtaiRedisLogRotate = false;
 bool gSyncMode = false;
 otai_redis_communication_mode_t gRedisCommunicationMode = OTAI_REDIS_COMMUNICATION_MODE_REDIS_ASYNC;
 string otairedis_rec_filename;
@@ -73,7 +73,7 @@ void sighup_handler(int signo)
      * Don't do any logging since they are using mutexes.
      */
     gLogRotate = true;
-    gLaiRedisLogRotate = true;
+    gOtaiRedisLogRotate = true;
 }
 
 int main(int argc, char **argv)
@@ -110,7 +110,7 @@ int main(int argc, char **argv)
         case 'r':
             if (!strcmp(optarg, "0"))
             {
-                gLairedisRecord = false;
+                gOtairedisRecord = false;
                 gSwssRecord = false;
             }
             else if (!strcmp(optarg, "1"))
@@ -119,7 +119,7 @@ int main(int argc, char **argv)
             }
             else if (!strcmp(optarg, "2"))
             {
-                gLairedisRecord = false;
+                gOtairedisRecord = false;
             }
             else if (!strcmp(optarg, "3"))
             {
@@ -174,7 +174,7 @@ int main(int argc, char **argv)
 
     SWSS_LOG_NOTICE("--- Starting Orchestration Agent ---");
 
-    initLaiApi();
+    initOtaiApi();
     if (gSwssRecord)
     {
         gRecordFile = record_location + "/" + swss_rec_filename; 

@@ -42,28 +42,28 @@ typedef enum _ConfigState_E
     CONFIG_DONE,
 } ConfigState_E;
 
-class LaiObjectOrch: public Orch
+class OtaiObjectOrch: public Orch
 {
 public:
-    LaiObjectOrch(DBConnector *db, const vector<string> &table_names): Orch(db, table_names) {}
+    OtaiObjectOrch(DBConnector *db, const vector<string> &table_names): Orch(db, table_names) {}
 
-    LaiObjectOrch(DBConnector *db,
+    OtaiObjectOrch(DBConnector *db,
                   const vector<string> &table_names,
                   otai_object_type_t obj_type,
                   const vector<otai_attr_id_t> &cfg_attrs);
 
-    LaiObjectOrch(DBConnector *db,
+    OtaiObjectOrch(DBConnector *db,
                   const vector<string> &table_names,
                   otai_object_type_t obj_type,
                   const vector<otai_attr_id_t> &cfg_attrs,
                   const vector<string> &auxiliary_fields);
 
-    LaiObjectOrch(DBConnector *db,
+    OtaiObjectOrch(DBConnector *db,
                   vector<TableConnector> &connectors,
                   otai_object_type_t obj_type,
                   const vector<otai_attr_id_t> &cfg_attrs);
 
-    LaiObjectOrch(DBConnector *db,
+    OtaiObjectOrch(DBConnector *db,
                   vector<TableConnector> &connectors,
                   otai_object_type_t obj_type,
                   const vector<otai_attr_id_t> &cfg_attrs,
@@ -79,13 +79,13 @@ public:
 
     void doStateTask(Consumer &consumer);
 
-    bool createLaiObject(const string &key);
+    bool createOtaiObject(const string &key);
 
     virtual void addExtraAttrsOnCreate(vector<otai_attribute_t> &attrs) {};
 
     bool syncStateTable(otai_object_id_t oid, const string &key);
 
-    bool setLaiObjectAttrs(const string &key,
+    bool setOtaiObjectAttrs(const string &key,
                            map<string, string> &field_values,
                            string operation_id="");
 
@@ -93,9 +93,9 @@ public:
                                      vector<FieldValueTuple> &auxiliary_fv,
                                      string operation_id="");
 
-    otai_status_t setLaiObjectAttr(otai_object_id_t oid, const string &field, const string &value);
+    otai_status_t setOtaiObjectAttr(otai_object_id_t oid, const string &field, const string &value);
 
-    otai_status_t getLaiObjectAttr(otai_object_id_t oid, const string &field, string &value);
+    otai_status_t getOtaiObjectAttr(otai_object_id_t oid, const string &field, string &value);
 
     virtual void setFlexCounter(otai_object_id_t id, vector<otai_attribute_t> &attrs){};
 
@@ -105,7 +105,7 @@ public:
 
     void publishOperationResult(string operation_id, int status_code, string message);
 
-    bool translateLaiObjectAttr(_In_ const string &field,
+    bool translateOtaiObjectAttr(_In_ const string &field,
                                 _In_ const string &value,
                                 _Out_ otai_attribute_t &attr);
 

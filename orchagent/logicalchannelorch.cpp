@@ -47,7 +47,7 @@ vector<string> g_lch_auxiliary_fields =
 };
 
 LogicalChannelOrch::LogicalChannelOrch(DBConnector *db, std::vector<TableConnector>& connectors)
-    : LaiObjectOrch(db, connectors, OTAI_OBJECT_TYPE_LOGICALCHANNEL, g_logicalchannel_cfg_attrs, g_lch_auxiliary_fields)
+    : OtaiObjectOrch(db, connectors, OTAI_OBJECT_TYPE_LOGICALCHANNEL, g_logicalchannel_cfg_attrs, g_lch_auxiliary_fields)
 {
     m_stateTable = unique_ptr<Table>(new Table(m_stateDb.get(), STATE_OT_LOGICALCHANNEL_TABLE_NAME));
     m_countersTable = COUNTERS_OT_LOGICALCHANNEL_TABLE_NAME;

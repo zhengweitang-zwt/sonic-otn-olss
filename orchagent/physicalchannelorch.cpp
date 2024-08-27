@@ -35,7 +35,7 @@ vector<otai_attr_id_t> g_physicalchannel_cfg_attrs =
 };
 
 PhysicalChannelOrch::PhysicalChannelOrch(DBConnector *db, std::vector<TableConnector>& connectors)
-    : LaiObjectOrch(db, connectors, OTAI_OBJECT_TYPE_PHYSICALCHANNEL, g_physicalchannel_cfg_attrs)
+    : OtaiObjectOrch(db, connectors, OTAI_OBJECT_TYPE_PHYSICALCHANNEL, g_physicalchannel_cfg_attrs)
 {
     m_stateTable = unique_ptr<Table>(new Table(m_stateDb.get(), STATE_OT_TRANSCEIVER_TABLE_NAME));
     m_countersTable = COUNTERS_OT_TRANSCEIVER_TABLE_NAME;

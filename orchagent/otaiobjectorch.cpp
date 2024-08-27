@@ -42,7 +42,7 @@ extern LinecardOrch *gLinecardOrch;
 extern FlexCounterOrch *gFlexCounterOrch;
 extern otai_object_id_t gLinecardId;
 
-void LaiObjectOrch::localDataInit(DBConnector* db,
+void OtaiObjectOrch::localDataInit(DBConnector* db,
                                   otai_object_type_t obj_type,
                                   const vector<otai_attr_id_t>& cfg_attrs)
 {
@@ -85,7 +85,7 @@ void LaiObjectOrch::localDataInit(DBConnector* db,
     }
 }
 
-LaiObjectOrch::LaiObjectOrch(DBConnector* db,
+OtaiObjectOrch::OtaiObjectOrch(DBConnector* db,
     const vector<string>& table_names,
     otai_object_type_t obj_type,
     const vector<otai_attr_id_t>& cfg_attrs)
@@ -96,7 +96,7 @@ LaiObjectOrch::LaiObjectOrch(DBConnector* db,
     localDataInit(db, obj_type, cfg_attrs);
 }
 
-LaiObjectOrch::LaiObjectOrch(DBConnector* db,
+OtaiObjectOrch::OtaiObjectOrch(DBConnector* db,
     vector<TableConnector> &connectors,
     otai_object_type_t obj_type,
     const vector<otai_attr_id_t>& cfg_attrs)
@@ -107,12 +107,12 @@ LaiObjectOrch::LaiObjectOrch(DBConnector* db,
     localDataInit(db, obj_type, cfg_attrs);
 }
 
-LaiObjectOrch::LaiObjectOrch(DBConnector *db,
+OtaiObjectOrch::OtaiObjectOrch(DBConnector *db,
                              const vector<string> &table_names,
                              otai_object_type_t obj_type,
                              const vector<otai_attr_id_t> &cfg_attrs,
                              const vector<string> &auxiliary_fields)
-    : LaiObjectOrch(db, table_names, obj_type, cfg_attrs)
+    : OtaiObjectOrch(db, table_names, obj_type, cfg_attrs)
 {
     for (auto i : auxiliary_fields)
     {
@@ -120,12 +120,12 @@ LaiObjectOrch::LaiObjectOrch(DBConnector *db,
     }    
 }
 
-LaiObjectOrch::LaiObjectOrch(DBConnector *db,
+OtaiObjectOrch::OtaiObjectOrch(DBConnector *db,
                              vector<TableConnector> &connectors,
                              otai_object_type_t obj_type,
                              const vector<otai_attr_id_t> &cfg_attrs,
                              const vector<string> &auxiliary_fields)
-    : LaiObjectOrch(db, connectors, obj_type, cfg_attrs)
+    : OtaiObjectOrch(db, connectors, obj_type, cfg_attrs)
 {
     for (auto i : auxiliary_fields)
     {
@@ -133,7 +133,7 @@ LaiObjectOrch::LaiObjectOrch(DBConnector *db,
     }
 }
 
-void LaiObjectOrch::doTask(NotificationConsumer& consumer)
+void OtaiObjectOrch::doTask(NotificationConsumer& consumer)
 {
     SWSS_LOG_ENTER();
 
@@ -177,7 +177,7 @@ void LaiObjectOrch::doTask(NotificationConsumer& consumer)
                 goto error;
             }
  
-            status = setLaiObjectAttr(oid, field, value);
+            status = setOtaiObjectAttr(oid, field, value);
             if (status != OTAI_STATUS_SUCCESS)
             {
                 SWSS_LOG_ERROR("Failed to set attr, field=%s, value=%s, status=%d",
@@ -197,7 +197,7 @@ void LaiObjectOrch::doTask(NotificationConsumer& consumer)
             string &value = fvValue(values[i]);
             string &field = fvField(values[i]);
 
-            status = getLaiObjectAttr(oid, field, value);
+            status = getOtaiObjectAttr(oid, field, value);
             if (status != OTAI_STATUS_SUCCESS)
             {
                 SWSS_LOG_ERROR("Failed to get attr, field=%s, status=%d",
@@ -218,7 +218,7 @@ error:
     return;
 }
 
-bool LaiObjectOrch::createLaiObject(const string &key)
+bool OtaiObjectOrch::createOtaiObject(const string &key)
 {
     SWSS_LOG_ENTER();
 
@@ -230,7 +230,7 @@ bool LaiObjectOrch::createLaiObject(const string &key)
     map<string, string> &createonly_attrs = m_key2createonlyAttrs[key];
     for (auto fv: createonly_attrs)
     {
-        if (translateLaiObjectAttr(fv.first, fv.second, attr) == false)
+        if (translateOtaiObjectAttr(fv.first, fv.second, attr) == false)
         {
             SWSS_LOG_ERROR("Failed to translate attr, %s|%s",
                            m_objectName.c_str(), fv.first.c_str());
@@ -251,7 +251,7 @@ bool LaiObjectOrch::createLaiObject(const string &key)
 
     m_key2oid[key] = oid;
 
-    if (!setLaiObjectAttrs(key, m_key2createandsetAttrs[key]))
+    if (!setOtaiObjectAttrs(key, m_key2createandsetAttrs[key]))
     {
         SWSS_LOG_ERROR("Failed to set fields, %s", key.c_str());
     }
@@ -275,7 +275,7 @@ bool LaiObjectOrch::createLaiObject(const string &key)
     return true;
 }
 
-void LaiObjectOrch::publishOperationResult(string channel, otai_status_t status_code, string message) 
+void OtaiObjectOrch::publishOperationResult(string channel, otai_status_t status_code, string message) 
 {
     swss::NotificationProducer notifications(m_stateDb.get(), channel);
     std::vector<swss::FieldValueTuple> entry;
@@ -284,7 +284,7 @@ void LaiObjectOrch::publishOperationResult(string channel, otai_status_t status_
             status_code, message.c_str(), sent_clients, channel.c_str());
 }
 
-bool LaiObjectOrch::setLaiObjectAttrs(const string& key, map<string, string>& field_values, string operation_id)
+bool OtaiObjectOrch::setOtaiObjectAttrs(const string& key, map<string, string>& field_values, string operation_id)
 {
     SWSS_LOG_ENTER();
 
@@ -311,7 +311,7 @@ bool LaiObjectOrch::setLaiObjectAttrs(const string& key, map<string, string>& fi
 
         SWSS_LOG_NOTICE("set field=%s value=%s", fv.first.c_str(), fv.second.c_str());
 
-        status = setLaiObjectAttr(m_key2oid[key], fv.first, fv.second);
+        status = setOtaiObjectAttr(m_key2oid[key], fv.first, fv.second);
         if (status != OTAI_STATUS_SUCCESS)
         {
             SWSS_LOG_ERROR("Failed to set %s|%s %s to %s, status=%d",
@@ -347,7 +347,7 @@ bool LaiObjectOrch::setLaiObjectAttrs(const string& key, map<string, string>& fi
     return rv;
 }
 
-bool LaiObjectOrch::translateLaiObjectAttr(
+bool OtaiObjectOrch::translateOtaiObjectAttr(
     _In_ const string &field,
     _In_ const string &value,
     _Out_ otai_attribute_t &attr)
@@ -386,7 +386,7 @@ bool LaiObjectOrch::translateLaiObjectAttr(
     return true;
 }
 
-otai_status_t LaiObjectOrch::setLaiObjectAttr(
+otai_status_t OtaiObjectOrch::setOtaiObjectAttr(
     otai_object_id_t oid,
     const string &field,
     const string &value)
@@ -404,7 +404,7 @@ otai_status_t LaiObjectOrch::setLaiObjectAttr(
 
     attr.id = m_createandsetAttrs[field];
 
-    if (translateLaiObjectAttr(field, value, attr) == false)
+    if (translateOtaiObjectAttr(field, value, attr) == false)
     {
         SWSS_LOG_ERROR("Failed to translate attr, %s|%s",
                        m_objectName.c_str(), field.c_str());
@@ -425,7 +425,7 @@ otai_status_t LaiObjectOrch::setLaiObjectAttr(
     return OTAI_STATUS_SUCCESS;
 }
 
-otai_status_t LaiObjectOrch::getLaiObjectAttr(otai_object_id_t oid, const string &field, string &value)
+otai_status_t OtaiObjectOrch::getOtaiObjectAttr(otai_object_id_t oid, const string &field, string &value)
 {
     SWSS_LOG_ENTER();
 
@@ -468,7 +468,7 @@ otai_status_t LaiObjectOrch::getLaiObjectAttr(otai_object_id_t oid, const string
     return OTAI_STATUS_SUCCESS;
 }
 
-bool LaiObjectOrch::syncStateTable(otai_object_id_t oid, const string &key)
+bool OtaiObjectOrch::syncStateTable(otai_object_id_t oid, const string &key)
 {
     SWSS_LOG_ENTER();
 
@@ -486,7 +486,7 @@ bool LaiObjectOrch::syncStateTable(otai_object_id_t oid, const string &key)
     return true;
 }
 
-void LaiObjectOrch::doTask(Consumer &consumer)
+void OtaiObjectOrch::doTask(Consumer &consumer)
 {
     SWSS_LOG_ENTER();
 
@@ -591,7 +591,7 @@ void LaiObjectOrch::doTask(Consumer &consumer)
                     continue;
                 }
 
-                if (!createLaiObject(*k))
+                if (!createOtaiObject(*k))
                 {
                     SWSS_LOG_THROW("Failed to create object");
                 }
@@ -622,7 +622,7 @@ void LaiObjectOrch::doTask(Consumer &consumer)
                 continue;
             }
 
-            if (!setLaiObjectAttrs(key, createandset_attrs, operation_id))
+            if (!setOtaiObjectAttrs(key, createandset_attrs, operation_id))
             {
                 SWSS_LOG_ERROR("Failed to set attributes, %s", key.c_str());
             }
@@ -645,7 +645,7 @@ void LaiObjectOrch::doTask(Consumer &consumer)
     }
 }
 
-void LaiObjectOrch::doStateTask(Consumer &consumer)
+void OtaiObjectOrch::doStateTask(Consumer &consumer)
 {
     SWSS_LOG_ENTER();
 
@@ -715,7 +715,7 @@ void LaiObjectOrch::doStateTask(Consumer &consumer)
     }
 }
 
-void LaiObjectOrch::setSelfProcessAttrs(
+void OtaiObjectOrch::setSelfProcessAttrs(
         const string &key,
         vector<FieldValueTuple> &auxiliary_fv,
         string operation_id)

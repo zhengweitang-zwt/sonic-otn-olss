@@ -2,7 +2,7 @@
 
 #include "otaiobjectorch.h"
 
-class PhysicalChannelOrch: public LaiObjectOrch
+class PhysicalChannelOrch: public OtaiObjectOrch
 {
 public:
     PhysicalChannelOrch(DBConnector *db, std::vector<TableConnector>& connectors);

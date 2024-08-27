@@ -2,7 +2,7 @@
 
 #include "otaiobjectorch.h"
 
-class EthernetOrch: public LaiObjectOrch
+class EthernetOrch: public OtaiObjectOrch
 {
 public:
     EthernetOrch(DBConnector *db, std::vector<TableConnector>& connectors);

@@ -77,7 +77,7 @@ vector<otai_attr_id_t> g_linecard_state_attrs =
 };
 
 LinecardOrch::LinecardOrch(DBConnector *db, std::vector<TableConnector>& connectors)
-    : LaiObjectOrch(db, connectors, OTAI_OBJECT_TYPE_LINECARD, g_linecard_cfg_attrs)
+    : OtaiObjectOrch(db, connectors, OTAI_OBJECT_TYPE_LINECARD, g_linecard_cfg_attrs)
 {
     SWSS_LOG_ENTER();
 
@@ -176,7 +176,7 @@ void LinecardOrch::stopPreConfigProc()
     status = otai_linecard_api->set_linecard_attribute(gLinecardId, &attr);
     if (status != OTAI_STATUS_SUCCESS)
     {
-        SWSS_LOG_ERROR("Failed to notify Lai pre-config finish %d", status);
+        SWSS_LOG_ERROR("Failed to notify Otai pre-config finish %d", status);
     }
 }
 
@@ -232,7 +232,7 @@ void LinecardOrch::doAppLinecardTableTask(Consumer& consumer)
             }
             if (OrchFSM::getState() == ORCH_STATE_WORK)
             {
-                setLaiObjectAttrs(key, set_attrs, operation_id);
+                setOtaiObjectAttrs(key, set_attrs, operation_id);
             }
             it = consumer.m_toSync.erase(it);
         }
@@ -306,11 +306,11 @@ void LinecardOrch::createLinecard(
     bool is_board_mode_existed = false;
     string board_mode;
  
-    initLaiRedis(record_location, otairedis_rec_filename);
+    initOtaiRedis(record_location, otairedis_rec_filename);
 
     for (auto fv: create_attrs)
     {
-        if (translateLaiObjectAttr(fv.first, fv.second, attr) == false)
+        if (translateOtaiObjectAttr(fv.first, fv.second, attr) == false)
         {
             SWSS_LOG_ERROR("Failed to translate linecard attr, %s", fv.first.c_str());
             continue;
@@ -373,7 +373,7 @@ void LinecardOrch::createLinecard(
     status = otai_linecard_api->set_linecard_attribute(gLinecardId, &attr);
     if (status != OTAI_STATUS_SUCCESS)
     {
-        SWSS_LOG_ERROR("Failed to notify Lai start pre-config %d", status);
+        SWSS_LOG_ERROR("Failed to notify Otai start pre-config %d", status);
     }
 
     if (is_board_mode_existed)
