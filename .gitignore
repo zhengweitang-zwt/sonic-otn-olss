@@ -29,6 +29,8 @@ Makefile.in
 **/Makefile
 autom4te.cache
 config/
+libtool
+stamp-h1
 
 # Temp files #
 ##############
@@ -40,3 +42,7 @@ config/
 deps/
 **/.deps
 
+# binaries
+cfgmgr/linecardmgrd
+configsyncd/configsyncd
+orchagent/orchagent

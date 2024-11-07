@@ -53,10 +53,6 @@ otai_ocm_api_t*                   otai_ocm_api;
 otai_otdr_api_t*                  otai_otdr_api;
 
 extern otai_object_id_t gLinecardId;
-extern bool gOtairedisRecord;
-extern bool gSwssRecord;
-extern ofstream gRecordOfs;
-extern string gRecordFile;
 
 map<string, string> gProfileMap;
 
@@ -160,7 +156,7 @@ void initOtaiApi()
     otai_log_set(OTAI_API_OTDR,                     OTAI_LOG_LEVEL_WARN);
 }
 
-void initOtaiRedis(const string &record_location, const std::string &record_filename)
+void initOtaiRedis()
 {
     /**
      * NOTE: Notice that all Redis attributes here are using OTAI_NULL_OBJECT_ID
@@ -170,49 +166,6 @@ void initOtaiRedis(const string &record_location, const std::string &record_file
 
     otai_attribute_t attr;
     otai_status_t status;
-
-    /* set recording dir before enable recording */
-
-    if (gOtairedisRecord)
-    {
-        attr.id = OTAI_REDIS_LINECARD_ATTR_RECORDING_OUTPUT_DIR;
-        attr.value.s8list.count = (uint32_t)record_location.size();
-        attr.value.s8list.list = (int8_t*)const_cast<char *>(record_location.c_str());
-
-        status = otai_linecard_api->set_linecard_attribute(gLinecardId, &attr);
-        if (status != OTAI_STATUS_SUCCESS)
-        {
-            SWSS_LOG_ERROR("Failed to set OTAI Redis recording output folder to %s, rv:%d",
-                record_location.c_str(), status);
-            exit(EXIT_FAILURE);
-        }
-
-        attr.id = OTAI_REDIS_LINECARD_ATTR_RECORDING_FILENAME;
-        attr.value.s8list.count = (uint32_t)record_filename.size();
-        attr.value.s8list.list = (int8_t*)const_cast<char *>(record_filename.c_str());
-
-        status = otai_linecard_api->set_linecard_attribute(gLinecardId, &attr);
-        if (status != OTAI_STATUS_SUCCESS)
-        {   
-            SWSS_LOG_ERROR("Failed to set OTAI Redis recording logfile to %s, rv:%d",
-                record_filename.c_str(), status);
-            exit(EXIT_FAILURE);
-        } 
-
-    }
-
-    /* Disable/enable OTAI Redis recording */
-
-    attr.id = OTAI_REDIS_LINECARD_ATTR_RECORD;
-    attr.value.booldata = gOtairedisRecord;
-
-    status = otai_linecard_api->set_linecard_attribute(gLinecardId, &attr);
-    if (status != OTAI_STATUS_SUCCESS)
-    {
-        SWSS_LOG_ERROR("Failed to %s OTAI Redis recording, rv:%d",
-            gOtairedisRecord ? "enable" : "disable", status);
-        exit(EXIT_FAILURE);
-    }
 
     attr.id = OTAI_REDIS_LINECARD_ATTR_USE_PIPELINE;
     attr.value.booldata = true;

@@ -13,7 +13,6 @@ using namespace swss;
 
 extern otai_linecard_api_t* otai_linecard_api;
 extern otai_object_id_t             gLinecardId;
-extern bool                        gOtaiRedisLogRotate;
 
 /*
  * Global orch daemon variables
@@ -244,19 +243,6 @@ void OrchDaemon::flush()
     {
         SWSS_LOG_ERROR("Failed to flush redis pipeline %d", status);
         exit(EXIT_FAILURE);
-    }
-
-    // check if logroate is requested
-    if (gOtaiRedisLogRotate)
-    {
-        SWSS_LOG_NOTICE("performing log rotate");
-
-        gOtaiRedisLogRotate = false;
-
-        attr.id = OTAI_REDIS_LINECARD_ATTR_PERFORM_LOG_ROTATE;
-        attr.value.booldata = true;
-
-        otai_linecard_api->set_linecard_attribute(gLinecardId, &attr);
     }
 }
 

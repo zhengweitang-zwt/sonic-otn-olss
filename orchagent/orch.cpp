@@ -16,11 +16,6 @@ using namespace std;
 
 extern int gBatchSize;
 
-extern bool gSwssRecord;
-extern ofstream gRecordOfs;
-extern bool gLogRotate;
-extern std::string gRecordFile;
-
 Orch::Orch(DBConnector *db, const string tableName, int pri)
 {
     addConsumer(db, tableName, pri);
@@ -52,10 +47,6 @@ Orch::Orch(const vector<TableConnector>& tables)
 
 Orch::~Orch()
 {
-    if (gRecordOfs.is_open())
-    {
-        gRecordOfs.close();
-    }
 }
 
 vector<Selectable *> Orch::getSelectables()
@@ -75,12 +66,6 @@ void Consumer::addToSync(const KeyOpFieldsValuesTuple &entry)
 
     string key = kfvKey(entry);
     string op  = kfvOp(entry);
-
-    /* Record incoming tasks */
-    if (gSwssRecord)
-    {
-        Orch::recordTuple(*this, entry);
-    }
 
     /*
     * m_toSync is a multimap which will allow one key with multiple values,
@@ -523,39 +508,6 @@ void Orch::dumpPendingTasks(vector<string> &ts)
         }
 
         consumer->dumpPendingTasks(ts);
-    }
-}
-
-void Orch::logfileReopen()
-{
-    gRecordOfs.close();
-
-    /*
-     * On log rotate we will use the same file name, we are assuming that
-     * logrotate daemon move filename to filename.1 and we will create new
-     * empty file here.
-     */
-
-    gRecordOfs.open(gRecordFile);
-
-    if (!gRecordOfs.is_open())
-    {
-        SWSS_LOG_ERROR("failed to open gRecordOfs file %s: %s", gRecordFile.c_str(), strerror(errno));
-        return;
-    }
-}
-
-void Orch::recordTuple(Consumer &consumer, const KeyOpFieldsValuesTuple &tuple)
-{
-    string s = consumer.dumpTuple(tuple);
-
-    gRecordOfs << getTimestamp() << "|" << s << endl;
-
-    if (gLogRotate)
-    {
-        gLogRotate = false;
-
-        logfileReopen();
     }
 }
 

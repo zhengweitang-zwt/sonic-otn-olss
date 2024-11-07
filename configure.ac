@@ -15,8 +15,6 @@ AC_CHECK_LIB([hiredis], [redisConnect],,
 
 AC_CHECK_LIB([nl-genl-3], [genl_connect])
 
-PKG_CHECK_MODULES([JANSSON], [jansson])
-
 AC_CHECK_LIB([otai], [otai_object_type_query],
     AM_CONDITIONAL(HAVE_OTAI, true),
    [AC_MSG_WARN([libotai is not installed.])

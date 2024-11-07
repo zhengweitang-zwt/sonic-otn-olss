@@ -207,14 +207,10 @@ public:
     virtual void doTask(swss::NotificationConsumer &consumer) { }
     virtual void doTask(swss::SelectableTimer &timer) { }
 
-    /* TODO: refactor recording */
-    static void recordTuple(Consumer &consumer, const swss::KeyOpFieldsValuesTuple &tuple);
-
     void dumpPendingTasks(std::vector<std::string> &ts);
 protected:
     ConsumerMap m_consumerMap;
 
-    static void logfileReopen();
     std::string dumpTuple(Consumer &consumer, const swss::KeyOpFieldsValuesTuple &tuple);
     ref_resolve_status resolveFieldRefValue(type_map&, const std::string&, swss::KeyOpFieldsValuesTuple&, otai_object_id_t&, std::string&);
     bool parseIndexRange(const std::string &input, otai_uint32_t &range_low, otai_uint32_t &range_high);

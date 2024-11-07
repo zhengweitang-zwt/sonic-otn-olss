@@ -42,7 +42,6 @@ extern std::unordered_set<std::string> linecard_counter_ids_status;
 extern std::unordered_set<std::string> linecard_counter_ids_gauge;
 extern std::unordered_set<std::string> linecard_counter_ids_counter;
 extern int gSlotId;
-extern string otairedis_rec_filename;
 extern bool gSyncMode;
 extern otai_redis_communication_mode_t gRedisCommunicationMode;
 extern FlexCounterOrch* gFlexCounterOrch;
@@ -299,14 +298,13 @@ void LinecardOrch::createLinecard(
 {
     SWSS_LOG_ENTER();
 
-    string record_location = "/var/log/swss";
     otai_attribute_t attr;
     vector<otai_attribute_t> attrs;
     otai_status_t status;
     bool is_board_mode_existed = false;
     string board_mode;
  
-    initOtaiRedis(record_location, otairedis_rec_filename);
+    initOtaiRedis();
 
     for (auto fv: create_attrs)
     {

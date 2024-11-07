@@ -37,44 +37,21 @@ otai_object_id_t gLinecardId = OTAI_NULL_OBJECT_ID;
 #define DEFAULT_BATCH_SIZE  128
 int gBatchSize = DEFAULT_BATCH_SIZE;
 int gSlotId = 0;
-bool gOtairedisRecord = true;
-bool gSwssRecord = true;
-bool gLogRotate = false;
-bool gOtaiRedisLogRotate = false;
 bool gSyncMode = false;
 otai_redis_communication_mode_t gRedisCommunicationMode = OTAI_REDIS_COMMUNICATION_MODE_REDIS_ASYNC;
-string otairedis_rec_filename;
 string gFlexcounterJsonFile;
-ofstream gRecordOfs;
-string gRecordFile;
 
 void usage()
 {
-    cout << "usage: orchagent [-h] [-r record_type] [-d record_location] [-f swss_rec_filename] [-j otairedis_rec_filename] [-b batch_size] [-m MAC] [-i INST_ID] [-s] [-z mode]" << endl;
+    cout << "usage: orchagent [-h] [-b batch_size] [-m MAC] [-i INST_ID] [-s] [-z mode]" << endl;
     cout << "    -h: display this message" << endl;
-    cout << "    -r record_type: record orchagent logs with type (default 3)" << endl;
-    cout << "                    0: do not record logs" << endl;
-    cout << "                    1: record OTAI call sequence as otairedis.rec" << endl;
-    cout << "                    2: record SwSS task sequence as swss.rec" << endl;
-    cout << "                    3: enable both above two records" << endl;
-    cout << "    -d record_location: set record logs folder location (default .)" << endl;
     cout << "    -b batch_size: set consumer table pop operation batch size (default 128)" << endl;
     cout << "    -i INST_ID: set the ASIC instance_id in multi-asic platform" << endl;
     cout << "    -s: enable synchronous mode (deprecated, use -z)" << endl;
     cout << "    -z: redis communication mode (redis_async|redis_sync|zmq_sync), default: redis_async" << endl;
-    cout << "    -f swss_rec_filename: swss record log filename(default 'swss.rec')" << endl;
-    cout << "    -j otairedis_rec_filename: otairedis record log filename(default otairedis.rec)" << endl;
     cout << "    -c flexcounter_json_filename: flexcounter json filename" << endl;
 }
 
-void sighup_handler(int signo)
-{
-    /*
-     * Don't do any logging since they are using mutexes.
-     */
-    gLogRotate = true;
-    gOtaiRedisLogRotate = true;
-}
 
 int main(int argc, char **argv)
 {
@@ -86,18 +63,9 @@ int main(int argc, char **argv)
 
     swss::Logger::linkToDbNative("orchagent");
 
-    if (signal(SIGHUP, sighup_handler) == SIG_ERR)
-    {
-        SWSS_LOG_ERROR("failed to setup SIGHUP action");
-        exit(1);
-    }
-
     int opt;
 
-    string record_location = ".";
-    string swss_rec_filename = "swss.rec";
-
-    while ((opt = getopt(argc, argv, "b:m:r:f:j:d:i:hsz:c:")) != -1)
+    while ((opt = getopt(argc, argv, "b:m:f:d:i:hsz:c:")) != -1)
     {
         switch (opt)
         {
@@ -106,38 +74,6 @@ int main(int argc, char **argv)
             break;
         case 'i':
             gSlotId = atoi(optarg) + 1;
-            break;
-        case 'r':
-            if (!strcmp(optarg, "0"))
-            {
-                gOtairedisRecord = false;
-                gSwssRecord = false;
-            }
-            else if (!strcmp(optarg, "1"))
-            {
-                gSwssRecord = false;
-            }
-            else if (!strcmp(optarg, "2"))
-            {
-                gOtairedisRecord = false;
-            }
-            else if (!strcmp(optarg, "3"))
-            {
-                continue; /* default behavior */
-            }
-            else
-            {
-                usage();
-                exit(EXIT_FAILURE);
-            }
-            break;
-        case 'd':
-            record_location = optarg;
-            if (access(record_location.c_str(), W_OK))
-            {
-                SWSS_LOG_ERROR("Failed to access writable directory %s", record_location.c_str());
-                exit(EXIT_FAILURE);
-            }
             break;
         case 'h':
             usage();
@@ -148,18 +84,6 @@ int main(int argc, char **argv)
             break;
         case 'z':
             otai_deserialize_redis_communication_mode(optarg, gRedisCommunicationMode);
-            break;
-        case 'f':
-            if (optarg)
-            {
-                swss_rec_filename = optarg;
-            }
-            break;
-        case 'j':
-            if (optarg)
-            {
-                otairedis_rec_filename = optarg;
-            }
             break;
         case 'c':
             if (optarg)
@@ -175,17 +99,6 @@ int main(int argc, char **argv)
     SWSS_LOG_NOTICE("--- Starting Orchestration Agent ---");
 
     initOtaiApi();
-    if (gSwssRecord)
-    {
-        gRecordFile = record_location + "/" + swss_rec_filename; 
-        gRecordOfs.open(gRecordFile, std::ofstream::out | std::ofstream::app);
-        if (!gRecordOfs.is_open())
-        {
-            SWSS_LOG_ERROR("Failed to open SwSS recording file %s", gRecordFile.c_str());
-            exit(EXIT_FAILURE);
-        }
-        gRecordOfs << getTimestamp() << "|recording started" << endl;
-    }
 
 
     /* Initialize orchestration components */
