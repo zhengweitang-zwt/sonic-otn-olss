@@ -42,8 +42,6 @@ extern std::unordered_set<std::string> linecard_counter_ids_status;
 extern std::unordered_set<std::string> linecard_counter_ids_gauge;
 extern std::unordered_set<std::string> linecard_counter_ids_counter;
 extern int gSlotId;
-extern bool gSyncMode;
-extern otai_redis_communication_mode_t gRedisCommunicationMode;
 extern FlexCounterOrch* gFlexCounterOrch;
 
 vector<otai_attr_id_t> g_linecard_cfg_attrs =
@@ -304,8 +302,6 @@ void LinecardOrch::createLinecard(
     bool is_board_mode_existed = false;
     string board_mode;
  
-    initOtaiRedis();
-
     for (auto fv: create_attrs)
     {
         if (translateOtaiObjectAttr(fv.first, fv.second, attr) == false)
@@ -343,16 +339,6 @@ void LinecardOrch::createLinecard(
     attr.id = OTAI_LINECARD_ATTR_LINECARD_OTDR_RESULT_NOTIFY;
     attr.value.ptr = (void*)onOtdrResultNotify;
     attrs.push_back(attr);
-
-    if (gSyncMode)
-    {   
-        SWSS_LOG_WARN("sync mode is depreacated, use -z param");
-
-        gRedisCommunicationMode = OTAI_REDIS_COMMUNICATION_MODE_REDIS_SYNC;
-    }   
-
-    attr.id = OTAI_REDIS_LINECARD_ATTR_REDIS_COMMUNICATION_MODE;
-    attr.value.s32 = gRedisCommunicationMode;
 
     otai_linecard_api->set_linecard_attribute(gLinecardId, &attr);
 

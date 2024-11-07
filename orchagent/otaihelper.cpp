@@ -156,26 +156,3 @@ void initOtaiApi()
     otai_log_set(OTAI_API_OTDR,                     OTAI_LOG_LEVEL_WARN);
 }
 
-void initOtaiRedis()
-{
-    /**
-     * NOTE: Notice that all Redis attributes here are using OTAI_NULL_OBJECT_ID
-     * as the linecard ID, because those operations don't require actual linecard
-     * to be performed, and they should be executed before creating linecard.
-     */
-
-    otai_attribute_t attr;
-    otai_status_t status;
-
-    attr.id = OTAI_REDIS_LINECARD_ATTR_USE_PIPELINE;
-    attr.value.booldata = true;
-
-    status = otai_linecard_api->set_linecard_attribute(gLinecardId, &attr);
-    if (status != OTAI_STATUS_SUCCESS)
-    {
-        SWSS_LOG_ERROR("Failed to enable redis pipeline, rv:%d", status);
-        exit(EXIT_FAILURE);
-    }
-    SWSS_LOG_NOTICE("Enable redis pipeline");
-}
-

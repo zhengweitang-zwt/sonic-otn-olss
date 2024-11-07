@@ -37,18 +37,14 @@ otai_object_id_t gLinecardId = OTAI_NULL_OBJECT_ID;
 #define DEFAULT_BATCH_SIZE  128
 int gBatchSize = DEFAULT_BATCH_SIZE;
 int gSlotId = 0;
-bool gSyncMode = false;
-otai_redis_communication_mode_t gRedisCommunicationMode = OTAI_REDIS_COMMUNICATION_MODE_REDIS_ASYNC;
 string gFlexcounterJsonFile;
 
 void usage()
 {
-    cout << "usage: orchagent [-h] [-b batch_size] [-m MAC] [-i INST_ID] [-s] [-z mode]" << endl;
+    cout << "usage: orchagent [-h] [-b batch_size] [-m MAC] [-i INST_ID]" << endl;
     cout << "    -h: display this message" << endl;
     cout << "    -b batch_size: set consumer table pop operation batch size (default 128)" << endl;
     cout << "    -i INST_ID: set the ASIC instance_id in multi-asic platform" << endl;
-    cout << "    -s: enable synchronous mode (deprecated, use -z)" << endl;
-    cout << "    -z: redis communication mode (redis_async|redis_sync|zmq_sync), default: redis_async" << endl;
     cout << "    -c flexcounter_json_filename: flexcounter json filename" << endl;
 }
 
@@ -65,7 +61,7 @@ int main(int argc, char **argv)
 
     int opt;
 
-    while ((opt = getopt(argc, argv, "b:m:f:d:i:hsz:c:")) != -1)
+    while ((opt = getopt(argc, argv, "b:m:f:d:i:h:c:")) != -1)
     {
         switch (opt)
         {
@@ -78,13 +74,6 @@ int main(int argc, char **argv)
         case 'h':
             usage();
             exit(EXIT_SUCCESS);
-        case 's':
-            gSyncMode = true;
-            SWSS_LOG_NOTICE("Enabling synchronous mode");
-            break;
-        case 'z':
-            otai_deserialize_redis_communication_mode(optarg, gRedisCommunicationMode);
-            break;
         case 'c':
             if (optarg)
             {
